@@ -100,6 +100,15 @@ public class AIControlled_MovingObject : MovingObject
                         return _haveTarget;
                     }
                 }
+                public Transform activeTarget
+                {
+                    get
+                    {
+                        if (targets.Length == 0)
+                            return null;
+                        return targets[0].transform;
+                    }
+                }
 
                 public bool belowThreshold;
                 public float healthThreshold;
@@ -117,18 +126,18 @@ public class AIControlled_MovingObject : MovingObject
                     {
                         _delay += Time.deltaTime;
                         if (_delay > delay)
-                            _delay = delay;
+                            _delay = delay; 
                     }
-                    else
-                    {
+                    else if (_cooldown > 0.0f)
+                    { 
                         _cooldown -= Time.deltaTime;
                         if (_cooldown < 0.0f)
                             _cooldown = 0.0f;
+
+                        return true;
                     }
 
-                    _check = _check && 
-                        Mathf.Approximately(_delay, delay) && 
-                        Mathf.Approximately(_cooldown, Mathf.Epsilon);
+                    _check = _check && Mathf.Approximately(_delay, delay);
 
                     if (_check)
                         _cooldown = cooldown;
@@ -139,6 +148,7 @@ public class AIControlled_MovingObject : MovingObject
             public Conditions conditions;
         }
         public Profile[] profiles;
+        [HideInInspector]public Transform activeTarget;
 
         public void Update (AIControlled_MovingObject mo)
         {
@@ -150,6 +160,7 @@ public class AIControlled_MovingObject : MovingObject
             {
                 if (_profiles[i].conditions.Check(mo))
                 {
+                    activeTarget = _profiles[i].conditions.activeTarget;
                     switch (_profiles[i].subroutine)
                     {
                         case Profile.Subroutine.Movement:
@@ -315,16 +326,9 @@ public class AIControlled_MovingObject : MovingObject
         [System.Serializable]
         public struct Movement : ISubroutine
         {
-            public Transform target
-            {
-                get
-                {
-                    return GameObject.FindGameObjectWithTag("Player").transform;
-                }
-            }
-
             public void Do(AIControlled_MovingObject mo)
             {
+                Transform target = mo.highLevelAIRoutine.activeTarget;
                 float distance = Vector3.Distance(mo.transform.position, target.position);
 
                 if (distance <= farCutoff)
@@ -349,7 +353,7 @@ public class AIControlled_MovingObject : MovingObject
             {
                 public void Do(AIControlled_MovingObject mo)
                 {
-                    Transform target = mo.lowLevelAIRoutine.movementSubroutine.target;
+                    Transform target = mo.highLevelAIRoutine.activeTarget;
                     Vector3 targetVector = (mo.transform.position - target.position).normalized;
                     Vector3 destination = (targetVector * mo.lowLevelAIRoutine.movementSubroutine.farCutoff) + target.position;
                     mo.destinationGizmo = destination;
@@ -365,7 +369,7 @@ public class AIControlled_MovingObject : MovingObject
             {
                 public void Do(AIControlled_MovingObject mo)
                 {
-                    Transform target = mo.lowLevelAIRoutine.movementSubroutine.target;
+                    Transform target = mo.highLevelAIRoutine.activeTarget;
                     Vector3 targetVector = (mo.transform.position - target.position).normalized;
                     Vector3 destination = (targetVector * mo.lowLevelAIRoutine.movementSubroutine.nearCutoff) + target.position;
                     mo.destinationGizmo = destination;
@@ -381,7 +385,7 @@ public class AIControlled_MovingObject : MovingObject
             {
                 public void Do(AIControlled_MovingObject mo)
                 {
-                    Transform target = mo.lowLevelAIRoutine.movementSubroutine.target;
+                    Transform target = mo.highLevelAIRoutine.activeTarget;
                     Vector3 rangeVector = (mo.transform.position - target.position).normalized;
                     Vector3 destination = (rangeVector * mo.lowLevelAIRoutine.movementSubroutine.farCutoff) + target.position;
                     mo.destinationGizmo = destination;
@@ -399,7 +403,7 @@ public class AIControlled_MovingObject : MovingObject
 
                 public void Do(AIControlled_MovingObject mo)
                 {
-                    Transform target = mo.lowLevelAIRoutine.movementSubroutine.target;
+                    Transform target = mo.highLevelAIRoutine.activeTarget;
                     Vector3 rangeVector = (mo.transform.position - target.position).normalized;
                     float y = Mathf.Atan2(minDistances.x, flankRadius) * Mathf.Rad2Deg;
                     float z = Mathf.Atan2(minDistances.y, flankRadius) * Mathf.Rad2Deg;
@@ -420,18 +424,11 @@ public class AIControlled_MovingObject : MovingObject
         [System.Serializable]
         public struct Attack : ISubroutine
         {
-            public Transform target
-            {
-                get
-                {
-                    return GameObject.FindGameObjectWithTag("Player").transform;
-                }
-            }
-
             private bool meleeLastFrame;
 
             public void Do(AIControlled_MovingObject mo)
             {
+                Transform target = mo.highLevelAIRoutine.activeTarget;
                 float distance = Vector3.Distance(mo.transform.position, target.position);
 
                 bool meleeFrame = false;
@@ -519,23 +516,9 @@ public class AIControlled_MovingObject : MovingObject
         [System.Serializable]
         public struct Avoid : ISubroutine
         {
-            public GameObject target
-            {
-                get
-                {
-                    if (fleeTargets.Length < 1)
-                        return fleeTargets[0];
-                    else if (dodgeTargets.Length < 1)
-                        return dodgeTargets[0];
-
-                    return null;
-                }
-            }
-
             public void Do(AIControlled_MovingObject mo)
             {
-                if (target == null)
-                    return;
+                GameObject target = mo.highLevelAIRoutine.activeTarget.gameObject;
 
                 if ((target.layer & fleeLayerMask) != 0)
                     fleeSubroutine.Do(mo);
@@ -544,19 +527,6 @@ public class AIControlled_MovingObject : MovingObject
             }
 
             public LayerMask fleeLayerMask;
-            private GameObject[] fleeTargets
-            {
-                get
-                {
-                    List<GameObject> _fleeTargets = new List<GameObject>();
-                    foreach (GameObject go in FindObjectsOfType<GameObject>())
-                    {
-                        if ((go.layer & fleeLayerMask) != 0)
-                            _fleeTargets.Add(go);
-                    }
-                    return _fleeTargets.ToArray();
-                }
-            }
             [System.Serializable]
             public struct Flee : ISubroutine
             {
@@ -573,7 +543,7 @@ public class AIControlled_MovingObject : MovingObject
                     }
                     else
                     {
-                        Transform target = mo.lowLevelAIRoutine.movementSubroutine.target;
+                        Transform target = mo.highLevelAIRoutine.activeTarget;
                         Vector3 rangeVector = (mo.transform.position - target.position).normalized;
                         Vector3 destination = (rangeVector * minDistance) + mo.transform.position;
                         mo.destinationGizmo = destination;
@@ -589,19 +559,6 @@ public class AIControlled_MovingObject : MovingObject
             public Flee fleeSubroutine;
 
             public LayerMask dodgeLayerMask;
-            private GameObject[] dodgeTargets
-            {
-                get
-                {
-                    List<GameObject> _dodgeTargets = new List<GameObject>();
-                    foreach (GameObject go in FindObjectsOfType<GameObject>())
-                    {
-                        if ((go.layer & dodgeLayerMask) != 0)
-                            _dodgeTargets.Add(go);
-                    }
-                    return _dodgeTargets.ToArray();
-                }
-            }
             [System.Serializable]
             public struct Dodge : ISubroutine
             {
@@ -614,7 +571,7 @@ public class AIControlled_MovingObject : MovingObject
                 {
                     if (Mathf.Approximately(_cooldown, Mathf.Epsilon))
                     {
-                        Transform target = mo.lowLevelAIRoutine.movementSubroutine.target;
+                        Transform target = mo.highLevelAIRoutine.activeTarget;
                         Vector3 rangeVector = (mo.transform.position - target.position).normalized;
                         Vector3 destination = (rangeVector * distance) + mo.transform.position;
                         mo.destinationGizmo = destination;
