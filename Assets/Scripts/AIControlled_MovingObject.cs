@@ -38,7 +38,7 @@ public class AIControlled_MovingObject : MovingObject
             public int priority;
 
             [System.Serializable]
-            public struct Conditions
+            public class Conditions
             {
                 [System.Serializable]
                 public enum FindTargetMethod
@@ -212,7 +212,7 @@ public class AIControlled_MovingObject : MovingObject
     {
         //default
         [System.Serializable]
-        public struct Default : ISubroutine
+        public class Default : ISubroutine
         {
             public enum DefaultType
             {
@@ -237,7 +237,7 @@ public class AIControlled_MovingObject : MovingObject
             }
 
             [System.Serializable]
-            public struct Patrol : ISubroutine
+            public class Patrol : ISubroutine
             {
                 public LayerMask patrolLayerMask;
                 private Transform[] patrolTransforms
@@ -287,7 +287,7 @@ public class AIControlled_MovingObject : MovingObject
             }
             public Patrol patrolSubroutine;
             [System.Serializable]
-            public struct Flock : ISubroutine
+            public class Flock : ISubroutine
             {
                 public LayerMask flockingLayerMask;
                 private Transform[] flockingTransforms
@@ -317,7 +317,7 @@ public class AIControlled_MovingObject : MovingObject
             }
             public Flock flockSubroutine;
             [System.Serializable]
-            public struct Idle : ISubroutine
+            public class Idle : ISubroutine
             {
                 private bool centerSet;
                 private Vector3 centerPosition;
@@ -350,7 +350,7 @@ public class AIControlled_MovingObject : MovingObject
 
         //movement
         [System.Serializable]
-        public struct Movement : ISubroutine
+        public class Movement : ISubroutine
         {
             public void Do(AIControlled_MovingObject mo)
             {
@@ -375,7 +375,7 @@ public class AIControlled_MovingObject : MovingObject
 
             public float farCutoff;
             [System.Serializable]
-            public struct FarApproach : ISubroutine
+            public class FarApproach : ISubroutine
             {
                 public void Do(AIControlled_MovingObject mo)
                 {
@@ -391,7 +391,7 @@ public class AIControlled_MovingObject : MovingObject
 
             public float nearCutoff;
             [System.Serializable]
-            public struct NearApproach : ISubroutine
+            public class NearApproach : ISubroutine
             {
                 public void Do(AIControlled_MovingObject mo)
                 {
@@ -407,7 +407,7 @@ public class AIControlled_MovingObject : MovingObject
 
             public bool stayAtRange;
             [System.Serializable]
-            public struct AtRange : ISubroutine
+            public class AtRange : ISubroutine
             {
                 public void Do(AIControlled_MovingObject mo)
                 {
@@ -422,7 +422,7 @@ public class AIControlled_MovingObject : MovingObject
             public AtRange atRangeSubroutine;
 
             [System.Serializable]
-            public struct Flank : ISubroutine
+            public class Flank : ISubroutine
             {
                 public float flankRadius;
                 public Vector3 minDistances;
@@ -448,7 +448,7 @@ public class AIControlled_MovingObject : MovingObject
 
         //attack
         [System.Serializable]
-        public struct Attack : ISubroutine
+        public class Attack : ISubroutine
         {
             public void Do(AIControlled_MovingObject mo)
             {
@@ -461,7 +461,7 @@ public class AIControlled_MovingObject : MovingObject
 
         //avoidance
         [System.Serializable]
-        public struct Avoid : ISubroutine
+        public class Avoid : ISubroutine
         {
             public void Do(AIControlled_MovingObject mo)
             {
@@ -475,7 +475,7 @@ public class AIControlled_MovingObject : MovingObject
 
             public LayerMask fleeLayerMask;
             [System.Serializable]
-            public struct Flee : ISubroutine
+            public class Flee : ISubroutine
             {
                 public float minDistance;
                 public float duration;
@@ -507,7 +507,7 @@ public class AIControlled_MovingObject : MovingObject
 
             public LayerMask dodgeLayerMask;
             [System.Serializable]
-            public struct Dodge : ISubroutine
+            public class Dodge : ISubroutine
             {
                 public float distance;
                 public float cooldown;
