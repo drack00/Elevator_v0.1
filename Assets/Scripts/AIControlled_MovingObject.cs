@@ -110,9 +110,10 @@ public class AIControlled_MovingObject : MovingObject
                     }
                 }
 
+                public bool requireGroupApproval;
+
                 public bool belowHealthThreshold;
                 public float healthThreshold;
-
                 public bool belowStunThreshold;
                 public float stunThreshold;
 
@@ -126,6 +127,7 @@ public class AIControlled_MovingObject : MovingObject
                 public bool Check(AIControlled_MovingObject mo)
                 {
                     bool _check = haveTarget && 
+                        (!requireGroupApproval || AIGroup.GetApproval(mo)) &&
                         belowHealthThreshold == (mo.health < healthThreshold) &&
                         belowStunThreshold == (mo.stun < stunThreshold);
 
