@@ -110,37 +110,63 @@ public class AIControlled_MovingObject : MovingObject
                     }
                 }
 
-                public bool belowThreshold;
+                public bool belowHealthThreshold;
                 public float healthThreshold;
 
-                private float _delay;
-                public float delay;
+                public bool belowStunThreshold;
+                public float stunThreshold;
+
+                private float _warmup;
+                public float warmup;
                 private float _cooldown;
                 public float cooldown;
+                private float _delay;
+                public float delay;
 
                 public bool Check(AIControlled_MovingObject mo)
                 {
-                    bool _check = haveTarget && belowThreshold == (mo.health < healthThreshold);
+                    bool _check = haveTarget && 
+                        belowHealthThreshold == (mo.health < healthThreshold) &&
+                        belowStunThreshold == (mo.stun < stunThreshold);
 
                     if (_check)
                     {
-                        _delay += Time.deltaTime;
-                        if (_delay > delay)
-                            _delay = delay; 
+                        _warmup += Time.deltaTime;
+                        if (_warmup > warmup)
+                            _warmup = warmup;
                     }
-                    else if (_cooldown > 0.0f)
-                    { 
-                        _cooldown -= Time.deltaTime;
-                        if (_cooldown < 0.0f)
-                            _cooldown = 0.0f;
+                    else
+                    {
+                        _warmup = 0.0f;
 
-                        return true;
+                        if (_cooldown > 0.0f)
+                        {
+                            _cooldown -= Time.deltaTime;
+                            if (_cooldown < 0.0f)
+                                _cooldown = 0.0f;
+
+                            _check = true;
+                        }
                     }
 
-                    _check = _check && Mathf.Approximately(_delay, delay);
+                    _check = _check && Mathf.Approximately(_warmup, warmup);
+
+                    if (_check && Mathf.Approximately(_cooldown, Mathf.Epsilon))
+                        _cooldown = cooldown;
 
                     if (_check)
-                        _cooldown = cooldown;
+                    {
+                        if (Mathf.Approximately(_delay, Mathf.Epsilon))
+                            _delay = delay;
+                        else
+                        {
+                            _check = false;
+                            
+                            _delay -= Time.deltaTime;
+                            if (_delay < 0.0f)
+                                _delay = 0.0f;
+                        }
+                    }
 
                     return _check;
                 }
@@ -424,91 +450,12 @@ public class AIControlled_MovingObject : MovingObject
         [System.Serializable]
         public struct Attack : ISubroutine
         {
-            private bool meleeLastFrame;
-
             public void Do(AIControlled_MovingObject mo)
             {
-                Transform target = mo.highLevelAIRoutine.activeTarget;
-                float distance = Vector3.Distance(mo.transform.position, target.position);
+                mo.agent.SetDestination(mo.transform.position);
 
-                bool meleeFrame = false;
-
-                if (distance < meleeMax && meleeMin < distance)
-                    meleeFrame = true;
-                if (distance < rangedMax && rangedMin < distance)
-                    meleeFrame = false;
-
-                if (meleeFrame != meleeLastFrame)
-                {
-                    meleeSubroutine.Reset();
-                    rangedSubroutine.Reset();
-                }
-
-                if (meleeFrame)
-                    meleeSubroutine.Do(mo);
-                else if (distance < rangedMax && rangedMin < distance)
-                    rangedSubroutine.Do(mo);
-
-                meleeLastFrame = meleeFrame;
+                mo.animator.SetTrigger("Attack");
             }
-
-            public float rangedMax;
-            public float rangedMin;
-            [System.Serializable]
-            public struct Ranged : ISubroutine
-            {
-                public float attackCooldown;
-                private float _attackCooldown;
-                public void Reset() { _attackCooldown = 0.0f; }
-
-                public void Do(AIControlled_MovingObject mo)
-                {
-                    if (Mathf.Approximately(_attackCooldown, Mathf.Epsilon))
-                    {
-
-
-                        _attackCooldown = attackCooldown;
-                    }
-                    else
-                    {
-
-
-                        _attackCooldown -= Time.deltaTime;
-                        if (_attackCooldown < 0.0f)
-                            _attackCooldown = 0.0f;
-                    }
-                }
-            }
-            public Ranged rangedSubroutine;
-
-            public float meleeMax;
-            public float meleeMin;
-            [System.Serializable]
-            public struct Melee : ISubroutine
-            {
-                public float attackCooldown;
-                private float _attackCooldown;
-                public void Reset() { _attackCooldown = 0.0f; }
-
-                public void Do(AIControlled_MovingObject mo)
-                {
-                    if (Mathf.Approximately(_attackCooldown, Mathf.Epsilon))
-                    {
-
-
-                        _attackCooldown = attackCooldown;
-                    }
-                    else
-                    {
-
-
-                        _attackCooldown -= Time.deltaTime;
-                        if (_attackCooldown < 0.0f)
-                            _attackCooldown = 0.0f;
-                    }
-                }
-            }
-            public Melee meleeSubroutine;
         }
         public Attack attackSubroutine;
 
