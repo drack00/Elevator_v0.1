@@ -10,7 +10,8 @@ public class AIGroup : MonoBehaviour {
             return FindObjectsOfType<AIGroup>();
         }
     }
-    public static bool GetApproval (AIControlled_MovingObject mo)
+
+    public static bool GetApproval(AIControlled_MovingObject mo)
     {
         foreach (AIGroup group in allGroups)
         {
@@ -20,19 +21,72 @@ public class AIGroup : MonoBehaviour {
 
         return false;
     }
+    public static bool GetApproval(AIControlled_MovingObject mo, string tag)
+    {
+        foreach (AIGroup group in allGroups)
+        {
+            if (group.members.Contains(mo) && group.tag == tag)
+                return group.CheckForApproval(mo);
+        }
+
+        return false;
+    }
+    public static bool GetApproval(AIControlled_MovingObject mo, LayerMask layerMask)
+    {
+        foreach (AIGroup group in allGroups)
+        {
+            if (group.members.Contains(mo) && (group.gameObject.layer & layerMask) != 0)
+                return group.CheckForApproval(mo);
+        }
+
+        return false;
+    }
+    public static bool GetApproval(AIControlled_MovingObject mo, string tag, LayerMask layerMask)
+    {
+        foreach (AIGroup group in allGroups)
+        {
+            if (group.members.Contains(mo) && group.tag == tag && (group.gameObject.layer & layerMask) != 0)
+                return group.CheckForApproval(mo);
+        }
+
+        return false;
+    }
+
     public static void RemoveApproval (AIControlled_MovingObject mo)
     {
         foreach (AIGroup group in allGroups)
         {
             if (group.members.Contains(mo))
-            {
                 group.RemoveFromApprovedMembers(mo);
-
-                break;
-            }
         }
     }
-    [HideInInspector]public List<AIControlled_MovingObject> members;
+    public static void RemoveApproval(AIControlled_MovingObject mo, string tag)
+    {
+        foreach (AIGroup group in allGroups)
+        {
+            if (group.members.Contains(mo) && group.tag == tag)
+                group.RemoveFromApprovedMembers(mo);
+        }
+    }
+    public static void RemoveApproval(AIControlled_MovingObject mo, LayerMask layerMask)
+    {
+        foreach (AIGroup group in allGroups)
+        {
+            if (group.members.Contains(mo) && (group.gameObject.layer & layerMask) != 0)
+                group.RemoveFromApprovedMembers(mo);
+        }
+    }
+    public static void RemoveApproval(AIControlled_MovingObject mo, string tag, LayerMask layerMask)
+    {
+        foreach (AIGroup group in allGroups)
+        {
+            if (group.members.Contains(mo) && group.tag == tag && (group.gameObject.layer & layerMask) != 0)
+                group.RemoveFromApprovedMembers(mo);
+        }
+    }
+
+    [HideInInspector]
+    public List<AIControlled_MovingObject> members;
     private List<AIControlled_MovingObject> approvedMembers;
     public int maxApprovals;
 

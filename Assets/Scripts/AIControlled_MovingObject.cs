@@ -111,6 +111,8 @@ public class AIControlled_MovingObject : MovingObject
                 }
 
                 public bool requireGroupApproval;
+                public string groupTag;
+                public LayerMask groupLayerMask;
 
                 public bool belowHealthThreshold;
                 public float healthThreshold;
@@ -126,10 +128,22 @@ public class AIControlled_MovingObject : MovingObject
 
                 public bool Check(AIControlled_MovingObject mo)
                 {
-                    bool _check = haveTarget && 
-                        (!requireGroupApproval || AIGroup.GetApproval(mo)) &&
+                    bool _check = haveTarget &&
                         belowHealthThreshold == (mo.health < healthThreshold) &&
                         belowStunThreshold == (mo.stun < stunThreshold);
+
+                    if (_check && !requireGroupApproval)
+                    {
+                        if (!string.IsNullOrEmpty(groupTag))
+                        {
+                            if (groupLayerMask != 0)
+                                _check = AIGroup.GetApproval(mo, groupTag, groupLayerMask);
+                            else
+                                _check = AIGroup.GetApproval(mo, groupTag);
+                        }
+                        else
+                            _check = AIGroup.GetApproval(mo);
+                    }
 
                     if (_check)
                     {
@@ -168,6 +182,19 @@ public class AIControlled_MovingObject : MovingObject
                             if (_delay < 0.0f)
                                 _delay = 0.0f;
                         }
+                    }
+
+                    if (!_check)
+                    {
+                        if (!string.IsNullOrEmpty(groupTag))
+                        {
+                            if (groupLayerMask != 0)
+                                AIGroup.RemoveApproval(mo, groupTag, groupLayerMask);
+                            else
+                                AIGroup.RemoveApproval(mo, groupTag);
+                        }
+                        else
+                            AIGroup.RemoveApproval(mo);
                     }
 
                     return _check;
