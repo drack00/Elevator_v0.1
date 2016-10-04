@@ -103,7 +103,7 @@ public class GameController : MonoBehaviour
             return go;
         }
 
-        public List<GameObject> gos;
+        [HideInInspector]public List<GameObject> gos;
         private bool areAllSpawned
         {
             get
@@ -215,9 +215,9 @@ public class GameController : MonoBehaviour
             if (value != null)
             {
                 if (_currentWave != null)
-                    StartCoroutine(_currentWave.Update(_currentWave.gos));
+                    StartCoroutine(value.Update(_currentWave.gos));
                 else
-                    StartCoroutine(_currentWave.Update());
+                    StartCoroutine(value.Update());
             }
             else
                 EndGame();
