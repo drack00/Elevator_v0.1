@@ -15,9 +15,6 @@ public class GameController : MonoBehaviour
     [System.Serializable]
     public class Wave
     {
-        public bool useTimeLimit;
-        public float timeLimit;
-
         public AnimationCurve spawnCurve;
         public float spawnRate;
         private float spawnIndex;
@@ -150,7 +147,7 @@ public class GameController : MonoBehaviour
             int lastSpawnIndex = 0;
 
             interrupt = false;
-            while(!interrupt && (!useTimeLimit || spawnIndex < timeLimit) && !isWaveComplete)
+            while(!interrupt && !isWaveComplete)
             {
                 int currentSpawnIndex = Mathf.FloorToInt(spawnIndex);
                 if (spawnIndex == 0.0f || currentSpawnIndex != lastSpawnIndex)

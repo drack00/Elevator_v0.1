@@ -29,6 +29,11 @@ public class MovingObject : MonoBehaviour {
 		}
 	}
 
+    public virtual void Dead ()
+    {
+        gameObject.SetActive(false);
+    }
+
 	public float maxHealth;
 	private float _health;
 	public float health {
