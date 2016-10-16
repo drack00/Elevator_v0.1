@@ -132,7 +132,7 @@ public class AIControlled_MovingObject : MovingObject
                         belowHealthThreshold == (mo.health < healthThreshold) &&
                         belowStunThreshold == (mo.stun < stunThreshold);
 
-                    if (_check && !requireGroupApproval)
+                    if (_check && requireGroupApproval)
                     {
                         if (!string.IsNullOrEmpty(groupTag))
                         {
@@ -142,7 +142,12 @@ public class AIControlled_MovingObject : MovingObject
                                 _check = AIGroup.GetApproval(mo, groupTag);
                         }
                         else
-                            _check = AIGroup.GetApproval(mo);
+                        {
+                            if (groupLayerMask != 0)
+                                _check = AIGroup.GetApproval(mo, groupLayerMask);
+                            else
+                                _check = AIGroup.GetApproval(mo);
+                        }
                     }
 
                     if (_check)
@@ -194,7 +199,12 @@ public class AIControlled_MovingObject : MovingObject
                                 AIGroup.RemoveApproval(mo, groupTag);
                         }
                         else
-                            AIGroup.RemoveApproval(mo);
+                        {
+                            if (groupLayerMask != 0)
+                                AIGroup.RemoveApproval(mo, groupLayerMask);
+                            else
+                                AIGroup.RemoveApproval(mo);
+                        }
                     }
 
                     return _check;
