@@ -271,13 +271,10 @@ public class Hit : MonoBehaviour {
 	}
 		
 	void OnTriggerEnter (Collider _other) {
-		if (_other.GetComponent<Hurt> () == null)
+		if ((LayerMask.GetMask(LayerMask.LayerToName(_other.gameObject.layer)) & targetLayers) == 0 || _other.GetComponent<Hurt>() == null)
 			return;
 		
-		Hurt other = _other.GetComponent<Hurt> ();
-
-		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0)
-			return;
+		Hurt other = _other.GetComponent<Hurt>();
 		
 		if (responses.Count < hitBehaviour.maxResponses) {
 			responses.Add (other);
@@ -333,13 +330,10 @@ public class Hit : MonoBehaviour {
 	}
 
 	void OnTriggerStay (Collider _other) {
-		if (_other.GetComponent<Hurt> () == null)
+		if ((LayerMask.GetMask(LayerMask.LayerToName(_other.gameObject.layer)) & targetLayers) == 0 || _other.GetComponent<Hurt>() == null)
 			return;
 		
-		Hurt other = _other.GetComponent<Hurt> ();
-
-		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0)
-			return;
+		Hurt other = _other.GetComponent<Hurt>();
 
 		bool otherValid = false;
 		foreach (Hurt response in responses) {
@@ -398,13 +392,10 @@ public class Hit : MonoBehaviour {
 	}
 
 	void OnTriggerExit (Collider _other) {
-		if (_other.GetComponent<Hurt> () == null)
+		if ((LayerMask.GetMask(LayerMask.LayerToName(_other.gameObject.layer)) & targetLayers) == 0 || _other.GetComponent<Hurt>() == null)
 			return;
 		
-		Hurt other = _other.GetComponent<Hurt> ();
-
-		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0)
-			return;
+		Hurt other = _other.GetComponent<Hurt>();
 
 		if (responseBehaviour.timeScaleModifier == TimeScaleModifier.UntilExit)
 			Time.timeScale = defaultTimeScale;

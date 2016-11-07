@@ -578,12 +578,113 @@ public class AIControlled_MovingObject : MovingObject
         }
         public Avoid avoidSubroutine;
     }
-    public LowLevelAI lowLevelAIRoutine; 
+    public LowLevelAI lowLevelAIRoutine;
+    private NavMeshPath navPath;
+    private Vector3 navDirection;
 
-	public override void Update ()
+    public virtual void Awake ()
     {
-        base.Update();
+        agent.Stop();
 
-		highLevelAIRoutine.Update (this);
-	}
+        navPath = new NavMeshPath();
+    }
+    public virtual void FixedUpdate()
+    {
+        GroundCheck();
+        movementSettings.UpdateDesiredTargetSpeed(navDirection);
+
+        if ((Mathf.Abs(navDirection.x) > float.Epsilon || Mathf.Abs(navDirection.y) > float.Epsilon) && (advancedSettings.airControl || m_IsGrounded))
+        {
+            Vector3 desiredMove = new Vector3();
+            desiredMove.x = navDirection.x * movementSettings.CurrentTargetSpeed;
+            desiredMove.z = navDirection.z * movementSettings.CurrentTargetSpeed;
+            desiredMove.y = navDirection.y * movementSettings.CurrentTargetSpeed;Debug.Log(desiredMove);
+
+            if (rigidbody.velocity.sqrMagnitude < (movementSettings.CurrentTargetSpeed * movementSettings.CurrentTargetSpeed))
+                rigidbody.AddForce(desiredMove * SlopeMultiplier(), ForceMode.Impulse);
+        }
+    }
+    public override void Update()
+    {
+        highLevelAIRoutine.Update(this);
+
+        if (agent.CalculatePath(agent.destination, navPath))
+        {
+            int i = 1;
+            while (i < navPath.corners.Length)
+            {
+                if (Vector3.Distance(transform.position, navPath.corners[i]) > 0.5f)
+                {
+                    navDirection = (navPath.corners[i] - transform.position).normalized;
+                    break;
+                }
+                i++;
+            }
+        }
+
+        base.Update();
+    }
+
+    [System.Serializable]
+    public class MovementSettings
+    {
+        public float ForwardSpeed = 8.0f;
+        public float BackwardSpeed = 4.0f;
+        public float StrafeSpeed = 4.0f;
+        public float JumpForce = 30f;
+        public AnimationCurve SlopeCurveModifier = new AnimationCurve(new Keyframe(-90.0f, 1.0f), new Keyframe(0.0f, 1.0f), new Keyframe(90.0f, 0.0f));
+        [HideInInspector]public float CurrentTargetSpeed = 8f;
+
+        public void UpdateDesiredTargetSpeed(Vector3 input)
+        {
+            if (input == Vector3.zero) return;
+            if (input.x > 0 || input.x < 0)
+                CurrentTargetSpeed = StrafeSpeed;
+            if (input.y < 0)
+                CurrentTargetSpeed = BackwardSpeed;
+            if (input.y > 0)
+                CurrentTargetSpeed = ForwardSpeed;
+        }
+    }
+    public MovementSettings movementSettings = new MovementSettings();
+    [System.Serializable]
+    public class AdvancedSettings
+    {
+        public float groundCheckDistance = 0.01f;
+        public float stickToGroundHelperDistance = 0.5f;
+        public float slowDownRate = 20f;
+        public bool airControl;
+    }
+    public AdvancedSettings advancedSettings = new AdvancedSettings();
+    private CapsuleCollider m_Capsule
+    {
+        get
+        {
+            return GetComponent<CapsuleCollider>();
+        }
+    }
+    private Vector3 m_GroundContactNormal;
+    private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded;
+    private void GroundCheck()
+    {
+        m_PreviouslyGrounded = m_IsGrounded;
+        RaycastHit hitInfo;
+        if (Physics.SphereCast(transform.position, m_Capsule.radius, Vector3.down, out hitInfo, ((m_Capsule.height / 2f) - m_Capsule.radius) + advancedSettings.groundCheckDistance))
+        {
+            m_IsGrounded = true;
+            m_GroundContactNormal = hitInfo.normal;
+        }
+        else
+        {
+            m_IsGrounded = false;
+            m_GroundContactNormal = Vector3.up;
+        }
+        if (!m_PreviouslyGrounded && m_IsGrounded && m_Jumping)
+            m_Jumping = false;
+    }
+    private float SlopeMultiplier()
+    {
+        float angle = Vector3.Angle(m_GroundContactNormal, Vector3.up);
+        return movementSettings.SlopeCurveModifier.Evaluate(angle);
+    }
 }
