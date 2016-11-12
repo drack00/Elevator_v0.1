@@ -18,8 +18,10 @@ public class AIControlled_MovingObject : MovingObject
     }
 
     [HideInInspector]public Vector3 destinationGizmo;
+    [HideInInspector]public Vector3 directionGizmo;
     void OnDrawGizmos() {
-        Gizmos.DrawWireCube(destinationGizmo, Vector3.one);
+        Gizmos.DrawCube(destinationGizmo, Vector3.one);
+        Gizmos.DrawLine(transform.position, directionGizmo);
     }
 
     [System.Serializable]
@@ -319,8 +321,6 @@ public class AIControlled_MovingObject : MovingObject
                     if (distance < patrolTolerance)
                         currentPatrolIndex = nextPatrolIndex;
 
-                    mo.destinationGizmo = targetPoint.position;
-
                     mo.agent.SetDestination(targetPoint.position);
                 }
             }
@@ -349,7 +349,6 @@ public class AIControlled_MovingObject : MovingObject
                     Vector3 targetPosition = MathStuff.GetClosestTransform(mo.transform.position, flockingTransforms).position;
                     Vector3 _flockOffset = Quaternion.LookRotation((targetPosition - mo.transform.position).normalized) * flockOffset;
                     Vector3 destination = targetPosition + _flockOffset;
-                    mo.destinationGizmo = destination;
 
                     mo.agent.SetDestination(destination);
                 }
@@ -378,7 +377,6 @@ public class AIControlled_MovingObject : MovingObject
                         targetPosition = (new Vector3(Random.Range(-1 * maxStray.x, maxStray.x), Random.Range(-1 * maxStray.y, maxStray.y), Random.Range(-1 * maxStray.z, maxStray.z))) + centerPosition;
                         targetSet = true;
                     }
-                    mo.destinationGizmo = targetPosition;
 
                     mo.agent.SetDestination(targetPosition);
                 }
@@ -421,7 +419,6 @@ public class AIControlled_MovingObject : MovingObject
                     Transform target = mo.highLevelAIRoutine.activeTarget;
                     Vector3 targetVector = (mo.transform.position - target.position).normalized;
                     Vector3 destination = (targetVector * mo.lowLevelAIRoutine.movementSubroutine.farCutoff) + target.position;
-                    mo.destinationGizmo = destination;
 
                     mo.agent.SetDestination(destination);
                 }
@@ -437,7 +434,6 @@ public class AIControlled_MovingObject : MovingObject
                     Transform target = mo.highLevelAIRoutine.activeTarget;
                     Vector3 targetVector = (mo.transform.position - target.position).normalized;
                     Vector3 destination = (targetVector * mo.lowLevelAIRoutine.movementSubroutine.nearCutoff) + target.position;
-                    mo.destinationGizmo = destination;
 
                     mo.agent.SetDestination(destination);
                 }
@@ -453,7 +449,6 @@ public class AIControlled_MovingObject : MovingObject
                     Transform target = mo.highLevelAIRoutine.activeTarget;
                     Vector3 rangeVector = (mo.transform.position - target.position).normalized;
                     Vector3 destination = (rangeVector * mo.lowLevelAIRoutine.movementSubroutine.farCutoff) + target.position;
-                    mo.destinationGizmo = destination;
 
                     mo.agent.SetDestination(destination);
                 }
@@ -476,7 +471,6 @@ public class AIControlled_MovingObject : MovingObject
                     Quaternion rotation = Quaternion.Euler(x, y, z);
                     Vector3 destination = (rangeVector * flankRadius) + target.position;
                     destination = MathStuff.RotateAroundPivot(destination, target.position, rotation);
-                    mo.destinationGizmo = destination;
 
                     mo.agent.SetDestination(destination);
                 }
@@ -532,7 +526,6 @@ public class AIControlled_MovingObject : MovingObject
                         Transform target = mo.highLevelAIRoutine.activeTarget;
                         Vector3 rangeVector = (mo.transform.position - target.position).normalized;
                         Vector3 destination = (rangeVector * minDistance) + mo.transform.position;
-                        mo.destinationGizmo = destination;
 
                         mo.agent.SetDestination(destination);
 
@@ -560,7 +553,6 @@ public class AIControlled_MovingObject : MovingObject
                         Transform target = mo.highLevelAIRoutine.activeTarget;
                         Vector3 rangeVector = (mo.transform.position - target.position).normalized;
                         Vector3 destination = (rangeVector * distance) + mo.transform.position;
-                        mo.destinationGizmo = destination;
 
                         mo.agent.SetDestination(destination);
 
@@ -579,50 +571,35 @@ public class AIControlled_MovingObject : MovingObject
         public Avoid avoidSubroutine;
     }
     public LowLevelAI lowLevelAIRoutine;
-    private NavMeshPath navPath;
-    private Vector3 navDirection;
 
     public virtual void Awake ()
     {
+        agent.updatePosition = false;
+        agent.updateRotation = false;
         agent.Stop();
-
-        navPath = new NavMeshPath();
     }
+
     public virtual void FixedUpdate()
     {
+        highLevelAIRoutine.Update(this);
+
+        destinationGizmo = agent.destination;
+
         GroundCheck();
+        Vector3 navDirection = (agent.nextPosition - transform.position).normalized;
         movementSettings.UpdateDesiredTargetSpeed(navDirection);
 
-        if ((Mathf.Abs(navDirection.x) > float.Epsilon || Mathf.Abs(navDirection.y) > float.Epsilon) && (advancedSettings.airControl || m_IsGrounded))
+        if ((Mathf.Abs(navDirection.x) > float.Epsilon || Mathf.Abs(navDirection.z) > float.Epsilon || Mathf.Abs(navDirection.y) > float.Epsilon) && 
+            (advancedSettings.airControl || m_IsGrounded))
         {
-            Vector3 desiredMove = new Vector3();
-            desiredMove.x = navDirection.x * movementSettings.CurrentTargetSpeed;
-            desiredMove.z = navDirection.z * movementSettings.CurrentTargetSpeed;
-            desiredMove.y = navDirection.y * movementSettings.CurrentTargetSpeed;Debug.Log(desiredMove);
+            Vector3 desiredMove = new Vector3(
+                navDirection.x * movementSettings.CurrentTargetSpeed,
+                navDirection.y * movementSettings.CurrentTargetSpeed,
+                navDirection.z * movementSettings.CurrentTargetSpeed);
 
             if (rigidbody.velocity.sqrMagnitude < (movementSettings.CurrentTargetSpeed * movementSettings.CurrentTargetSpeed))
                 rigidbody.AddForce(desiredMove * SlopeMultiplier(), ForceMode.Impulse);
         }
-    }
-    public override void Update()
-    {
-        highLevelAIRoutine.Update(this);
-
-        if (agent.CalculatePath(agent.destination, navPath))
-        {
-            int i = 1;
-            while (i < navPath.corners.Length)
-            {
-                if (Vector3.Distance(transform.position, navPath.corners[i]) > 0.5f)
-                {
-                    navDirection = (navPath.corners[i] - transform.position).normalized;
-                    break;
-                }
-                i++;
-            }
-        }
-
-        base.Update();
     }
 
     [System.Serializable]
@@ -688,3 +665,5 @@ public class AIControlled_MovingObject : MovingObject
         return movementSettings.SlopeCurveModifier.Evaluate(angle);
     }
 }
+ 
+ 
