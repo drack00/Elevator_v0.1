@@ -18,10 +18,8 @@ public class AIControlled_MovingObject : MovingObject
     }
 
     [HideInInspector]public Vector3 destinationGizmo;
-    [HideInInspector]public Vector3 directionGizmo;
     void OnDrawGizmos() {
         Gizmos.DrawCube(destinationGizmo, Vector3.one);
-        Gizmos.DrawLine(transform.position, directionGizmo);
     }
 
     [System.Serializable]
@@ -578,7 +576,7 @@ public class AIControlled_MovingObject : MovingObject
         agent.updateRotation = false;
         agent.Stop();
     }
-
+    public float maxSpeed;
     public virtual void FixedUpdate()
     {
         highLevelAIRoutine.Update(this);
@@ -586,23 +584,20 @@ public class AIControlled_MovingObject : MovingObject
         destinationGizmo = agent.destination;
 
         GroundCheck();
-        Vector3 navDirection = (agent.nextPosition - transform.position).normalized;
-        movementSettings.UpdateDesiredTargetSpeed(navDirection);
+        Vector3 navDirection = (agent.destination - transform.position).normalized;
+        //movementSettings.UpdateDesiredTargetSpeed(navDirection);
 
-        if ((Mathf.Abs(navDirection.x) > float.Epsilon || Mathf.Abs(navDirection.z) > float.Epsilon || Mathf.Abs(navDirection.y) > float.Epsilon) && 
-            (advancedSettings.airControl || m_IsGrounded))
+        if ((navDirection.sqrMagnitude > float.Epsilon) && (advancedSettings.airControl || m_IsGrounded))
         {
-            Vector3 desiredMove = new Vector3(
-                navDirection.x * movementSettings.CurrentTargetSpeed,
-                navDirection.y * movementSettings.CurrentTargetSpeed,
-                navDirection.z * movementSettings.CurrentTargetSpeed);
+            Vector3 desiredDir = Quaternion.LookRotation(navDirection).eulerAngles - transform.rotation.eulerAngles;
+            rigidbody.AddTorque((-1 * rigidbody.angularVelocity) + desiredDir, ForceMode.Impulse);
 
-            if (rigidbody.velocity.sqrMagnitude < (movementSettings.CurrentTargetSpeed * movementSettings.CurrentTargetSpeed))
-                rigidbody.AddForce(desiredMove * SlopeMultiplier(), ForceMode.Impulse);
+            Vector3 desiredMove = transform.forward * maxSpeed;
+            rigidbody.AddForce((-1 * rigidbody.velocity) + desiredMove, ForceMode.Impulse);
         }
     }
 
-    [System.Serializable]
+    /*[System.Serializable]
     public class MovementSettings
     {
         public float ForwardSpeed = 8.0f;
@@ -623,7 +618,7 @@ public class AIControlled_MovingObject : MovingObject
                 CurrentTargetSpeed = ForwardSpeed;
         }
     }
-    public MovementSettings movementSettings = new MovementSettings();
+    public MovementSettings movementSettings = new MovementSettings();*/
     [System.Serializable]
     public class AdvancedSettings
     {
@@ -640,7 +635,7 @@ public class AIControlled_MovingObject : MovingObject
             return GetComponent<CapsuleCollider>();
         }
     }
-    private Vector3 m_GroundContactNormal;
+    //private Vector3 m_GroundContactNormal;
     private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded;
     private void GroundCheck()
     {
@@ -649,21 +644,21 @@ public class AIControlled_MovingObject : MovingObject
         if (Physics.SphereCast(transform.position, m_Capsule.radius, Vector3.down, out hitInfo, ((m_Capsule.height / 2f) - m_Capsule.radius) + advancedSettings.groundCheckDistance))
         {
             m_IsGrounded = true;
-            m_GroundContactNormal = hitInfo.normal;
+            //m_GroundContactNormal = hitInfo.normal;
         }
         else
         {
             m_IsGrounded = false;
-            m_GroundContactNormal = Vector3.up;
+            //m_GroundContactNormal = Vector3.up;
         }
         if (!m_PreviouslyGrounded && m_IsGrounded && m_Jumping)
             m_Jumping = false;
     }
-    private float SlopeMultiplier()
+    /*private float SlopeMultiplier()
     {
         float angle = Vector3.Angle(m_GroundContactNormal, Vector3.up);
         return movementSettings.SlopeCurveModifier.Evaluate(angle);
-    }
+    }*/
 }
  
  
