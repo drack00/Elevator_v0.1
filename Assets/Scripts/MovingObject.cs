@@ -1,14 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-[RequireComponent (typeof(Animator))]
 [RequireComponent (typeof(Rigidbody))]
-public class MovingObject : MonoBehaviour {
-	[HideInInspector]public Animator animator {
-		get {
-			return GetComponent<Animator> ();
-		}
-	}
+public class MovingObject : MonoBehaviour, AI.ICanCheck {
+    public float GetHealth() { return health; }
+    public float GetStun() { return stun; }
+    public Animator GetAnimator() { return animator; }
+
+    public Animator animator;
 	[HideInInspector]public new Rigidbody rigidbody {
 		get {
 			return GetComponent<Rigidbody> ();
