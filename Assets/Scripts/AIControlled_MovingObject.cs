@@ -457,16 +457,16 @@ public class AIControlled_MovingObject : MovingObject
             public class Flank : ISubroutine
             {
                 public float flankRadius;
-                public Vector3 minDistances;
+                public float minDistance;
 
                 public void Do(AIControlled_MovingObject mo)
                 {
                     Transform target = mo.highLevelAIRoutine.activeTarget;
                     Vector3 rangeVector = (mo.transform.position - target.position).normalized;
-                    float y = Mathf.Atan2(minDistances.x, flankRadius) * Mathf.Rad2Deg;
-                    float z = Mathf.Atan2(minDistances.y, flankRadius) * Mathf.Rad2Deg;
-                    float x = Mathf.Atan2(minDistances.z, flankRadius) * Mathf.Rad2Deg;
-                    Quaternion rotation = Quaternion.Euler(x, y, z);
+
+                    float navAngle = Mathf.Atan2(flankRadius, minDistance) * Mathf.Rad2Deg;
+                    Quaternion rotation = Quaternion.Euler(0.0f, navAngle, 0.0f);
+
                     Vector3 destination = (rangeVector * flankRadius) + target.position;
                     destination = MathStuff.RotateAroundPivot(destination, target.position, rotation);
 
