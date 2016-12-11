@@ -589,8 +589,8 @@ public class AIControlled_MovingObject : MovingObject
 
         if ((navDirection.sqrMagnitude > float.Epsilon) && (advancedSettings.airControl || m_IsGrounded))
         {
-            Vector3 desiredDir = Quaternion.LookRotation(navDirection).eulerAngles - transform.rotation.eulerAngles;
-            rigidbody.AddTorque((-1 * rigidbody.angularVelocity) + desiredDir, ForceMode.Impulse);
+            float desiredDir = MathStuff.SignedAngleBetween(transform.forward, navDirection, Vector3.up) * Mathf.Rad2Deg;
+            rigidbody.AddTorque(new Vector3(0.0f, (-1 * rigidbody.angularVelocity.y) + desiredDir, 0.0f), ForceMode.Impulse);
 
             Vector3 desiredMove = transform.forward * maxSpeed;
             rigidbody.AddForce((-1 * rigidbody.velocity) + desiredMove, ForceMode.Impulse);
