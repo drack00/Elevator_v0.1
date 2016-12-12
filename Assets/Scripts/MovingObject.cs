@@ -2,7 +2,7 @@
 using System.Collections;
 
 [RequireComponent (typeof(Rigidbody))]
-public class MovingObject : MonoBehaviour, AI.ICanCheck {
+public class MovingObject : MonoBehaviour, AI_Master.ICanCheck {
     public float GetHealth() { return health; }
     public float GetStun() { return stun; }
     public Animator GetAnimator() { return animator; }

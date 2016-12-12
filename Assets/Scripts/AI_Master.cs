@@ -2,8 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-[System.Serializable]
-public class AI : MonoBehaviour {
+public class AI_Master : MonoBehaviour {
     public interface ICanCheck
     {
         float GetHealth();
@@ -19,12 +18,18 @@ public class AI : MonoBehaviour {
         }
     }
 
-    public interface ISubroutine
+    public NavMeshAgent agent
     {
-        void Do(AI ai);
+        get
+        {
+            return GetComponent<NavMeshAgent>();
+        }
     }
 
-    public NavMeshAgent agent;
+    public interface ISubroutine
+    {
+        void Do(AI_Master master);
+    }
 
     [System.Serializable]
     public struct HighLevelAI
@@ -35,7 +40,7 @@ public class AI : MonoBehaviour {
             [System.Serializable]
             public enum Subroutine
             {
-                Movement, Attack, Avoid
+                Movement, Avoid
             }
             public Subroutine subroutine;
 
@@ -131,9 +136,9 @@ public class AI : MonoBehaviour {
                 private float _delay;
                 public float delay;
 
-                public bool Check(AI ai)
+                public bool Check(AI_Master master)
                 {
-                    ICanCheck canCheck = ai.canCheck;
+                    ICanCheck canCheck = master.canCheck;
 
                     bool _check = haveTarget &&
                         belowHealthThreshold == (canCheck.GetHealth() < healthThreshold) &&
@@ -223,33 +228,30 @@ public class AI : MonoBehaviour {
         [HideInInspector]
         public Transform activeTarget;
 
-        public void Update(AI ai)
+        public void Update(AI_Master master)
         {
-            ISubroutine activeSubroutine = ai.lowLevelAIRoutine.defaultSubroutine;
+            ISubroutine activeSubroutine = master.lowLevelAIRoutine.defaultSubroutine;
 
             List<Profile> _profiles = new List<Profile>(profiles);
             _profiles.Sort((Profile x, Profile y) => { return x.priority.CompareTo(y.priority); });
             for (int i = 0; i < _profiles.Count; i++)
             {
-                if (_profiles[i].conditions.Check(ai))
+                if (_profiles[i].conditions.Check(master))
                 {
                     activeTarget = _profiles[i].conditions.activeTarget;
                     switch (_profiles[i].subroutine)
                     {
                         case Profile.Subroutine.Movement:
-                            activeSubroutine = ai.lowLevelAIRoutine.movementSubroutine;
-                            break;
-                        case Profile.Subroutine.Attack:
-                            activeSubroutine = ai.lowLevelAIRoutine.attackSubroutine;
+                            activeSubroutine = master.lowLevelAIRoutine.movementSubroutine;
                             break;
                         case Profile.Subroutine.Avoid:
-                            activeSubroutine = ai.lowLevelAIRoutine.avoidSubroutine;
+                            activeSubroutine = master.lowLevelAIRoutine.avoidSubroutine;
                             break;
                     }
                 }
             }
 
-            activeSubroutine.Do(ai);
+            activeSubroutine.Do(master);
         }
     }
     public HighLevelAI highLevelAIRoutine;
@@ -267,18 +269,18 @@ public class AI : MonoBehaviour {
             }
             public DefaultType defaultType;
 
-            public void Do(AI ai)
+            public void Do(AI_Master master)
             {
                 switch (defaultType)
                 {
                     case DefaultType.Patrol:
-                        patrolSubroutine.Do(ai);
+                        patrolSubroutine.Do(master);
                         break;
                     case DefaultType.Flock:
-                        flockSubroutine.Do(ai);
+                        flockSubroutine.Do(master);
                         break;
                     case DefaultType.Idle:
-                        idleSubroutine.Do(ai);
+                        idleSubroutine.Do(master);
                         break;
                 }
             }
@@ -320,14 +322,14 @@ public class AI : MonoBehaviour {
                 }
                 public float patrolTolerance;
 
-                public void Do(AI ai)
+                public void Do(AI_Master master)
                 {
-                    float distance = Vector3.Distance(ai.agent.transform.position, targetPoint.position);
+                    float distance = Vector3.Distance(master.agent.transform.position, targetPoint.position);
 
                     if (distance < patrolTolerance)
                         currentPatrolIndex = nextPatrolIndex;
 
-                    ai.agent.SetDestination(targetPoint.position);
+                    master.agent.SetDestination(targetPoint.position);
                 }
             }
             public Patrol patrolSubroutine;
@@ -350,13 +352,13 @@ public class AI : MonoBehaviour {
                 }
                 public Vector3 flockOffset;
 
-                public void Do(AI ai)
+                public void Do(AI_Master master)
                 {
-                    Vector3 targetPosition = MathStuff.GetClosestTransform(ai.agent.transform.position, flockingTransforms).position;
-                    Vector3 _flockOffset = Quaternion.LookRotation((targetPosition - ai.agent.transform.position).normalized) * flockOffset;
+                    Vector3 targetPosition = MathStuff.GetClosestTransform(master.agent.transform.position, flockingTransforms).position;
+                    Vector3 _flockOffset = Quaternion.LookRotation((targetPosition - master.agent.transform.position).normalized) * flockOffset;
                     Vector3 destination = targetPosition + _flockOffset;
 
-                    ai.agent.SetDestination(destination);
+                    master.agent.SetDestination(destination);
                 }
             }
             public Flock flockSubroutine;
@@ -370,21 +372,21 @@ public class AI : MonoBehaviour {
                 public void Reset() { targetSet = false; centerSet = false; }
                 public Vector3 maxStray;
 
-                public void Do(AI ai)
+                public void Do(AI_Master master)
                 {
                     if (!centerSet)
                     {
-                        centerPosition = ai.agent.transform.position;
+                        centerPosition = master.agent.transform.position;
                         centerSet = true;
                     }
 
-                    if (!targetSet || ai.agent.transform.position == targetPosition)
+                    if (!targetSet || master.agent.transform.position == targetPosition)
                     {
                         targetPosition = (new Vector3(Random.Range(-1 * maxStray.x, maxStray.x), Random.Range(-1 * maxStray.y, maxStray.y), Random.Range(-1 * maxStray.z, maxStray.z))) + centerPosition;
                         targetSet = true;
                     }
 
-                    ai.agent.SetDestination(targetPosition);
+                    master.agent.SetDestination(targetPosition);
                 }
             }
             public Idle idleSubroutine;
@@ -395,38 +397,38 @@ public class AI : MonoBehaviour {
         [System.Serializable]
         public class Movement : ISubroutine
         {
-            public void Do(AI ai)
+            public void Do(AI_Master master)
             {
-                Transform target = ai.highLevelAIRoutine.activeTarget;
-                float distance = Vector3.Distance(ai.agent.transform.position, target.position);
+                Transform target = master.highLevelAIRoutine.activeTarget;
+                float distance = Vector3.Distance(master.agent.transform.position, target.position);
 
                 if (distance <= farCutoff)
                 {
                     if (!stayAtRange)
                     {
                         if (distance <= nearCutoff)
-                            flankSubroutine.Do(ai);
+                            flankSubroutine.Do(master);
                         else
-                            nearApproachSubroutine.Do(ai);
+                            nearApproachSubroutine.Do(master);
                     }
                     else
-                        atRangeSubroutine.Do(ai);
+                        atRangeSubroutine.Do(master);
                 }
                 else
-                    farApproachSubroutine.Do(ai);
+                    farApproachSubroutine.Do(master);
             }
 
             public float farCutoff;
             [System.Serializable]
             public class FarApproach : ISubroutine
             {
-                public void Do(AI ai)
+                public void Do(AI_Master master)
                 {
-                    Transform target = ai.highLevelAIRoutine.activeTarget;
-                    Vector3 targetVector = (ai.agent.transform.position - target.position).normalized;
-                    Vector3 destination = (targetVector * ai.lowLevelAIRoutine.movementSubroutine.farCutoff) + target.position;
+                    Transform target = master.highLevelAIRoutine.activeTarget;
+                    Vector3 targetVector = (master.agent.transform.position - target.position).normalized;
+                    Vector3 destination = (targetVector * master.lowLevelAIRoutine.movementSubroutine.farCutoff) + target.position;
 
-                    ai.agent.SetDestination(destination);
+                    master.agent.SetDestination(destination);
                 }
             }
             public FarApproach farApproachSubroutine;
@@ -435,13 +437,13 @@ public class AI : MonoBehaviour {
             [System.Serializable]
             public class NearApproach : ISubroutine
             {
-                public void Do(AI ai)
+                public void Do(AI_Master master)
                 {
-                    Transform target = ai.highLevelAIRoutine.activeTarget;
-                    Vector3 targetVector = (ai.agent.transform.position - target.position).normalized;
-                    Vector3 destination = (targetVector * ai.lowLevelAIRoutine.movementSubroutine.nearCutoff) + target.position;
+                    Transform target = master.highLevelAIRoutine.activeTarget;
+                    Vector3 targetVector = (master.agent.transform.position - target.position).normalized;
+                    Vector3 destination = (targetVector * master.lowLevelAIRoutine.movementSubroutine.nearCutoff) + target.position;
 
-                    ai.agent.SetDestination(destination);
+                    master.agent.SetDestination(destination);
                 }
             }
             public NearApproach nearApproachSubroutine;
@@ -450,13 +452,13 @@ public class AI : MonoBehaviour {
             [System.Serializable]
             public class AtRange : ISubroutine
             {
-                public void Do(AI ai)
+                public void Do(AI_Master master)
                 {
-                    Transform target = ai.highLevelAIRoutine.activeTarget;
-                    Vector3 rangeVector = (ai.agent.transform.position - target.position).normalized;
-                    Vector3 destination = (rangeVector * ai.lowLevelAIRoutine.movementSubroutine.farCutoff) + target.position;
+                    Transform target = master.highLevelAIRoutine.activeTarget;
+                    Vector3 rangeVector = (master.agent.transform.position - target.position).normalized;
+                    Vector3 destination = (rangeVector * master.lowLevelAIRoutine.movementSubroutine.farCutoff) + target.position;
 
-                    ai.agent.SetDestination(destination);
+                    master.agent.SetDestination(destination);
                 }
             }
             public AtRange atRangeSubroutine;
@@ -467,10 +469,10 @@ public class AI : MonoBehaviour {
                 public float flankRadius;
                 public float minDistance;
 
-                public void Do(AI ai)
+                public void Do(AI_Master master)
                 {
-                    Transform target = ai.highLevelAIRoutine.activeTarget;
-                    Vector3 rangeVector = (ai.agent.transform.position - target.position).normalized;
+                    Transform target = master.highLevelAIRoutine.activeTarget;
+                    Vector3 rangeVector = (master.agent.transform.position - target.position).normalized;
 
                     float navAngle = Mathf.Atan2(flankRadius, minDistance) * Mathf.Rad2Deg;
                     Quaternion rotation = Quaternion.Euler(0.0f, navAngle, 0.0f);
@@ -478,38 +480,25 @@ public class AI : MonoBehaviour {
                     Vector3 destination = (rangeVector * flankRadius) + target.position;
                     destination = MathStuff.RotateAroundPivot(destination, target.position, rotation);
 
-                    ai.agent.SetDestination(destination);
+                    master.agent.SetDestination(destination);
                 }
             }
             public Flank flankSubroutine;
         }
         public Movement movementSubroutine;
 
-        //attack
-        [System.Serializable]
-        public class Attack : ISubroutine
-        {
-            public void Do(AI ai)
-            {
-                ai.agent.SetDestination(ai.agent.transform.position);
-
-                ai.canCheck.GetAnimator().SetTrigger("Attack");
-            }
-        }
-        public Attack attackSubroutine;
-
         //avoidance
         [System.Serializable]
         public class Avoid : ISubroutine
         {
-            public void Do(AI ai)
+            public void Do(AI_Master master)
             {
-                GameObject target = ai.highLevelAIRoutine.activeTarget.gameObject;
+                GameObject target = master.highLevelAIRoutine.activeTarget.gameObject;
 
                 if ((target.layer & fleeLayerMask) != 0)
-                    fleeSubroutine.Do(ai);
+                    fleeSubroutine.Do(master);
                 else if ((target.layer & dodgeLayerMask) != 0)
-                    dodgeSubroutine.Do(ai);
+                    dodgeSubroutine.Do(master);
             }
 
             public LayerMask fleeLayerMask;
@@ -521,7 +510,7 @@ public class AI : MonoBehaviour {
                 private float _duration;
                 public void Reset() { _duration = 0.0f; }
 
-                public void Do(AI ai)
+                public void Do(AI_Master master)
                 {
                     if (Mathf.Approximately(_duration, Mathf.Epsilon))
                     {
@@ -529,11 +518,11 @@ public class AI : MonoBehaviour {
                     }
                     else
                     {
-                        Transform target = ai.highLevelAIRoutine.activeTarget;
-                        Vector3 rangeVector = (ai.agent.transform.position - target.position).normalized;
-                        Vector3 destination = (rangeVector * minDistance) + ai.agent.transform.position;
+                        Transform target = master.highLevelAIRoutine.activeTarget;
+                        Vector3 rangeVector = (master.agent.transform.position - target.position).normalized;
+                        Vector3 destination = (rangeVector * minDistance) + master.agent.transform.position;
 
-                        ai.agent.SetDestination(destination);
+                        master.agent.SetDestination(destination);
 
                         _duration -= Time.deltaTime;
                         if (_duration < 0.0f)
@@ -552,15 +541,15 @@ public class AI : MonoBehaviour {
                 private float _cooldown;
                 public void Reset() { _cooldown = 0.0f; }
 
-                public void Do(AI ai)
+                public void Do(AI_Master master)
                 {
                     if (Mathf.Approximately(_cooldown, Mathf.Epsilon))
                     {
-                        Transform target = ai.highLevelAIRoutine.activeTarget;
-                        Vector3 rangeVector = (ai.agent.transform.position - target.position).normalized;
-                        Vector3 destination = (rangeVector * distance) + ai.agent.transform.position;
+                        Transform target = master.highLevelAIRoutine.activeTarget;
+                        Vector3 rangeVector = (master.agent.transform.position - target.position).normalized;
+                        Vector3 destination = (rangeVector * distance) + master.agent.transform.position;
 
-                        ai.agent.SetDestination(destination);
+                        master.agent.SetDestination(destination);
 
                         _cooldown = cooldown;
                     }
@@ -578,13 +567,7 @@ public class AI : MonoBehaviour {
     }
     public LowLevelAI lowLevelAIRoutine;
 
-    public void OnAwake()
-    {
-        agent.updatePosition = false;
-        agent.updateRotation = false;
-        agent.Stop();
-    }
-    public void OnUpdate()
+    public void FixedUpdate()
     {
         highLevelAIRoutine.Update(this);
     }

@@ -2,26 +2,26 @@
 using System.Collections;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(AI))]
+[RequireComponent(typeof(AI_Master))]
 public class AIControlled_MovingObject : MovingObject
 {
-    public AI ai
+    public AI_Master ai
     {
         get
         {
-            return GetComponent<AI>();
+            return GetComponent<AI_Master>();
         }
     }
 
     public virtual void Awake ()
     {
-        ai.OnAwake();
+        ai.agent.updatePosition = false;
+        ai.agent.updateRotation = false;
+        ai.agent.Stop();
     }
     public float maxSpeed;
     public virtual void FixedUpdate()
     {
-        ai.OnUpdate();
-
         GroundCheck();
         Vector3 navDirection = (ai.agent.destination - transform.position).normalized;
         //movementSettings.UpdateDesiredTargetSpeed(navDirection);
