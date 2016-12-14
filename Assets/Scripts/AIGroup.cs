@@ -11,7 +11,7 @@ public class AIGroup : MonoBehaviour {
         }
     }
 
-    public static bool GetApproval(AI_Master.ICanCheck canCheck)
+    public static bool GetApproval(AI_Master.Profile.Conditions.ICanCheck canCheck)
     {
         foreach (AIGroup group in allGroups)
         {
@@ -21,7 +21,7 @@ public class AIGroup : MonoBehaviour {
 
         return false;
     }
-    public static bool GetApproval(AI_Master.ICanCheck canCheck, string tag)
+    public static bool GetApproval(AI_Master.Profile.Conditions.ICanCheck canCheck, string tag)
     {
         foreach (AIGroup group in allGroups)
         {
@@ -31,7 +31,7 @@ public class AIGroup : MonoBehaviour {
 
         return false;
     }
-    public static bool GetApproval(AI_Master.ICanCheck canCheck, LayerMask layerMask)
+    public static bool GetApproval(AI_Master.Profile.Conditions.ICanCheck canCheck, LayerMask layerMask)
     {
         foreach (AIGroup group in allGroups)
         {
@@ -41,7 +41,7 @@ public class AIGroup : MonoBehaviour {
 
         return false;
     }
-    public static bool GetApproval(AI_Master.ICanCheck canCheck, string tag, LayerMask layerMask)
+    public static bool GetApproval(AI_Master.Profile.Conditions.ICanCheck canCheck, string tag, LayerMask layerMask)
     {
         foreach (AIGroup group in allGroups)
         {
@@ -52,7 +52,7 @@ public class AIGroup : MonoBehaviour {
         return false;
     }
 
-    public static void RemoveApproval (AI_Master.ICanCheck canCheck)
+    public static void RemoveApproval (AI_Master.Profile.Conditions.ICanCheck canCheck)
     {
         foreach (AIGroup group in allGroups)
         {
@@ -60,7 +60,7 @@ public class AIGroup : MonoBehaviour {
                 group.RemoveFromApprovedMembers(canCheck);
         }
     }
-    public static void RemoveApproval(AI_Master.ICanCheck canCheck, string tag)
+    public static void RemoveApproval(AI_Master.Profile.Conditions.ICanCheck canCheck, string tag)
     {
         foreach (AIGroup group in allGroups)
         {
@@ -68,7 +68,7 @@ public class AIGroup : MonoBehaviour {
                 group.RemoveFromApprovedMembers(canCheck);
         }
     }
-    public static void RemoveApproval(AI_Master.ICanCheck canCheck, LayerMask layerMask)
+    public static void RemoveApproval(AI_Master.Profile.Conditions.ICanCheck canCheck, LayerMask layerMask)
     {
         foreach (AIGroup group in allGroups)
         {
@@ -76,7 +76,7 @@ public class AIGroup : MonoBehaviour {
                 group.RemoveFromApprovedMembers(canCheck);
         }
     }
-    public static void RemoveApproval(AI_Master.ICanCheck canCheck, string tag, LayerMask layerMask)
+    public static void RemoveApproval(AI_Master.Profile.Conditions.ICanCheck canCheck, string tag, LayerMask layerMask)
     {
         foreach (AIGroup group in allGroups)
         {
@@ -86,17 +86,17 @@ public class AIGroup : MonoBehaviour {
     }
 
     [HideInInspector]
-    public List<AI_Master.ICanCheck> members;
-    private List<AI_Master.ICanCheck> approvedMembers;
+    public List<AI_Master.Profile.Conditions.ICanCheck> members;
+    private List<AI_Master.Profile.Conditions.ICanCheck> approvedMembers;
     public int maxApprovals;
 
     void Awake()
     {
-        members = new List<AI_Master.ICanCheck>();
-        approvedMembers = new List<AI_Master.ICanCheck>();
+        members = new List<AI_Master.Profile.Conditions.ICanCheck>();
+        approvedMembers = new List<AI_Master.Profile.Conditions.ICanCheck>();
     }
 
-    public bool CheckForApproval (AI_Master.ICanCheck canCheck)
+    public bool CheckForApproval (AI_Master.Profile.Conditions.ICanCheck canCheck)
     {
         if (approvedMembers.Contains(canCheck))
             return true;
@@ -110,7 +110,7 @@ public class AIGroup : MonoBehaviour {
         return false;
     }
 
-    public void RemoveFromApprovedMembers(AI_Master.ICanCheck canCheck)
+    public void RemoveFromApprovedMembers(AI_Master.Profile.Conditions.ICanCheck canCheck)
     {
         if (approvedMembers.Contains(canCheck))
             approvedMembers.Remove(canCheck);

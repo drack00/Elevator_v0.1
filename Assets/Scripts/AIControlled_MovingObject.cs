@@ -15,15 +15,15 @@ public class AIControlled_MovingObject : MovingObject
 
     public virtual void Awake ()
     {
-        ai.agent.updatePosition = false;
-        ai.agent.updateRotation = false;
-        ai.agent.Stop();
+        ai.movement.agent.updatePosition = false;
+        ai.movement.agent.updateRotation = false;
+        ai.movement.agent.Stop();
     }
     public float maxSpeed;
     public virtual void FixedUpdate()
     {
         GroundCheck();
-        Vector3 navDirection = (ai.agent.destination - transform.position).normalized;
+        Vector3 navDirection = (ai.movement.agent.destination - transform.position).normalized;
         //movementSettings.UpdateDesiredTargetSpeed(navDirection);
 
         if ((navDirection.sqrMagnitude > float.Epsilon) && (advancedSettings.airControl || m_IsGrounded))
