@@ -7,7 +7,7 @@ public class AI_Movement : MonoBehaviour {
     [System.Serializable]
     public enum Subroutine
     {
-        None = 0, Masked, HaveTarget, Targeted
+        Masked, None, HaveTarget, Targeted
     }
 
     public interface ISubroutine
