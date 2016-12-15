@@ -107,6 +107,7 @@ public class AI_Master : MonoBehaviour {
                     return _haveTarget;
                 }
             }
+
             public Transform activeTarget
             {
                 get
@@ -232,19 +233,37 @@ public class AI_Master : MonoBehaviour {
 
     public void FixedUpdate()
     {
+
+        //assign profiles to slave AIs if conditions are met, if profile is masked pass to next highest priority profile, break when all slave profiles are set
+        bool movementMasked = true;
+        bool orientationMasked = true;
+        bool actionMasked = true;
         for (int i = 0; i < profiles.Length; i++)
         {
             if (profiles[i].conditions.Check(this))
             {
-                movement.selectedSubroutine = profiles[i].movementSubroutine;
-                movement.activeTarget = profiles[i].conditions.activeTarget;
-
-                orientation.selectedSubroutine = profiles[i].orientationSubroutine;
-                orientation.activeTarget = profiles[i].conditions.activeTarget;
-
-                action.selectedSubroutine = profiles[i].actionSubroutine;
-                action.activeTarget = profiles[i].conditions.activeTarget;
+                if (movementMasked && profiles[i].movementSubroutine != AI_Movement.Subroutine.Masked)
+                {
+                    movement.selectedSubroutine = profiles[i].movementSubroutine;
+                    movement.activeTarget = profiles[i].conditions.activeTarget;
+                    movementMasked = false;
+                }
+                if (orientationMasked && profiles[i].orientationSubroutine != AI_Orientation.Subroutine.Masked)
+                {
+                    orientation.selectedSubroutine = profiles[i].orientationSubroutine;
+                    orientation.activeTarget = profiles[i].conditions.activeTarget;
+                    orientationMasked = false;
+                }
+                if (actionMasked && profiles[i].actionSubroutine != AI_Action.Subroutine.Masked)
+                {
+                    action.selectedSubroutine = profiles[i].actionSubroutine;
+                    action.activeTarget = profiles[i].conditions.activeTarget;
+                    actionMasked = false;
+                }
             }
+
+            if (!movementMasked && !orientationMasked && !actionMasked)
+                break;
         }
     }
 }
