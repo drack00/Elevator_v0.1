@@ -6,11 +6,11 @@ using System.Collections.Generic;
 [RequireComponent(typeof(AI_Orientation))]
 [RequireComponent(typeof(AI_Action))]
 public class AI_Master : MonoBehaviour {
-    public Profile.Conditions.ICanCheck canCheck
+    public MovingObject movingObject
     {
         get
         {
-            return GetComponent<Profile.Conditions.ICanCheck > ();
+            return GetComponent<MovingObject > ();
         }
     }
 
@@ -136,27 +136,27 @@ public class AI_Master : MonoBehaviour {
 
             public bool Check(AI_Master master)
             {
-                ICanCheck canCheck = master.canCheck;
+                MovingObject mo = master.movingObject;
 
                 bool _check = haveTarget &&
-                    belowHealthThreshold == (canCheck.GetHealth() < healthThreshold) &&
-                    belowStunThreshold == (canCheck.GetStun() < stunThreshold);
+                    belowHealthThreshold == (mo.health < healthThreshold) &&
+                    belowStunThreshold == (mo.stun < stunThreshold);
 
                 if (_check && requireGroupApproval)
                 {
                     if (!string.IsNullOrEmpty(groupTag))
                     {
                         if (groupLayerMask != 0)
-                            _check = AIGroup.GetApproval(canCheck, groupTag, groupLayerMask);
+                            _check = AIGroup.GetApproval(mo, groupTag, groupLayerMask);
                         else
-                            _check = AIGroup.GetApproval(canCheck, groupTag);
+                            _check = AIGroup.GetApproval(mo, groupTag);
                     }
                     else
                     {
                         if (groupLayerMask != 0)
-                            _check = AIGroup.GetApproval(canCheck, groupLayerMask);
+                            _check = AIGroup.GetApproval(mo, groupLayerMask);
                         else
-                            _check = AIGroup.GetApproval(canCheck);
+                            _check = AIGroup.GetApproval(mo);
                     }
                 }
 
@@ -204,27 +204,20 @@ public class AI_Master : MonoBehaviour {
                     if (!string.IsNullOrEmpty(groupTag))
                     {
                         if (groupLayerMask != 0)
-                            AIGroup.RemoveApproval(canCheck, groupTag, groupLayerMask);
+                            AIGroup.RemoveApproval(mo, groupTag, groupLayerMask);
                         else
-                            AIGroup.RemoveApproval(canCheck, groupTag);
+                            AIGroup.RemoveApproval(mo, groupTag);
                     }
                     else
                     {
                         if (groupLayerMask != 0)
-                            AIGroup.RemoveApproval(canCheck, groupLayerMask);
+                            AIGroup.RemoveApproval(mo, groupLayerMask);
                         else
-                            AIGroup.RemoveApproval(canCheck);
+                            AIGroup.RemoveApproval(mo);
                     }
                 }
 
                 return _check;
-            }
-
-            public interface ICanCheck
-            {
-                float GetHealth();
-                float GetStun();
-                Animator GetAnimator();
             }
         }
         public Conditions conditions;

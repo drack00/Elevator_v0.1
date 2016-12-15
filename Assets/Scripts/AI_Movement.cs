@@ -339,15 +339,28 @@ public class AI_Movement : MonoBehaviour {
     {
         selectedSubroutine = Subroutine.None;
     }
+
+    public bool fixedUpdate;
     public void FixedUpdate()
+    {
+        if (!fixedUpdate)
+            return;
+
+        OnUpdate();
+    }
+    public void Update()
+    {
+        if (fixedUpdate)
+            return;
+
+        OnUpdate();
+    }
+    private void OnUpdate()
     {
         ISubroutine activeSubroutine = defaultSubroutine;
 
         switch (selectedSubroutine)
         {
-            case Subroutine.None:
-                activeSubroutine = null;
-                break;
             case Subroutine.HaveTarget:
                 activeSubroutine = haveTargetSubroutine;
                 break;

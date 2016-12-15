@@ -6,7 +6,7 @@ public class AI_Action : MonoBehaviour {
     [System.Serializable]
     public enum Subroutine
     {
-        Masked, None, HaveTarget, Targeted
+        Masked, None,
     }
 
     public interface ISubroutine
@@ -33,13 +33,29 @@ public class AI_Action : MonoBehaviour {
     {
         selectedSubroutine = Subroutine.None;
     }
+
+    public bool fixedUpdate;
     public void FixedUpdate()
+    {
+        if (!fixedUpdate)
+            return;
+
+        OnUpdate();
+    }
+    public void Update()
+    {
+        if (fixedUpdate)
+            return;
+
+        OnUpdate();
+    }
+    private void OnUpdate()
     {
         ISubroutine activeSubroutine = defaultSubroutine;
 
         switch (selectedSubroutine)
         {
-            
+
         }
 
         activeSubroutine.Do(this);
