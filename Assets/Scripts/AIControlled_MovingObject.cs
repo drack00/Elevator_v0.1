@@ -20,21 +20,22 @@ public class AIControlled_MovingObject : MovingObject
         ai.movement.agent.Stop();
     }
 
+    public override void Start()
+    {
+        base.Start();
+
+        ai.movement.agent.Resume();
+    }
+
     public float acceleration;
     public float maxSpeed;
 
     public virtual void FixedUpdate()
     {
         GroundCheck();
-        Vector3 navDirection = ai.movement.agent.destination - transform.position;
 
-        if ((navDirection.sqrMagnitude > float.Epsilon) && (advancedSettings.airControl || m_IsGrounded))
-        {
-            Vector3 desiredForce = navDirection.normalized * acceleration;
-            Vector3 sumForce = rigidbody.velocity + desiredForce;
-            Vector3 force = Vector3.ClampMagnitude(sumForce, maxSpeed) - rigidbody.velocity;
-            rigidbody.AddForce(force, ForceMode.Acceleration);
-        }
+        rigidbody.velocity = ai.movement.agent.velocity;
+        ai.movement.agent.nextPosition = rigidbody.position;
     }
 
     [System.Serializable]
