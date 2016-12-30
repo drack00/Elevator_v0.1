@@ -42,138 +42,12 @@ public class Hit : MonoBehaviour
 		onTimeScale = false;
 	}
 
-	[System.Serializable]
-	public enum ApplyType
-    {
-		Absolute, 
-
-		RelativeThis, 
-		RelativeThisRigidbody, 
-		RelativeOther, 
-		RelativeOtherRigidbody, 
-
-		ThisToOther, 
-		ThisToThisRigidbody, 
-		ThisToOtherRigidbody, 
-
-		ThisRigidbodyToThis, 
-		ThisRigidbodyToOther,
-		ThisRigidbodyToOtherRigidbody,
-
-		OtherToThis, 
-		OtherToThisRigidbody,
-		OtherToOtherRigidbody,
-
-		OtherRigidbodyToThis, 
-		OtherRigidbodyToOther,
-		OtherRigidbodyToThisRigidbody
-	}
-    public static Vector3 GetCorrectVector(ApplyType applyType, Hit hit, Hurt hurt, Vector3 vector, bool rotation = false)
-    {
-        if (!rotation)
-        {
-            Vector3 _vector = Vector3.zero;
-
-            switch (applyType)
-            {
-
-                case ApplyType.Absolute:
-                    _vector = vector;
-                    break;
-
-                case ApplyType.RelativeThis:
-                    _vector = hit.collider.transform.TransformDirection(vector);
-                    break;
-                case ApplyType.RelativeThisRigidbody:
-                    _vector = hit.collider.attachedRigidbody.transform.TransformDirection(vector);
-                    break;
-                case ApplyType.RelativeOther:
-                    _vector = hurt.transform.TransformDirection(vector);
-                    break;
-                case ApplyType.RelativeOtherRigidbody:
-                    _vector = hurt.collider.attachedRigidbody.transform.TransformDirection(vector);
-                    break;
-
-                case ApplyType.ThisToThisRigidbody:
-                    _vector = Quaternion.LookRotation((hit.collider.attachedRigidbody.transform.position - hit.collider.transform.position).normalized) * vector;
-                    break;
-                case ApplyType.ThisToOther:
-                    _vector = Quaternion.LookRotation((hurt.transform.position - hit.collider.transform.position).normalized) * vector;
-                    break;
-                case ApplyType.ThisToOtherRigidbody:
-                    _vector = Quaternion.LookRotation((hurt.collider.attachedRigidbody.transform.position - hit.collider.transform.position).normalized) * vector;
-                    break;
-
-                case ApplyType.ThisRigidbodyToThis:
-                    _vector = Quaternion.LookRotation((hit.collider.transform.position - hit.collider.attachedRigidbody.transform.position).normalized) * vector;
-                    break;
-                case ApplyType.ThisRigidbodyToOther:
-                    _vector = Quaternion.LookRotation((hurt.transform.position - hit.collider.attachedRigidbody.transform.position).normalized) * vector;
-                    break;
-                case ApplyType.ThisRigidbodyToOtherRigidbody:
-                    _vector = Quaternion.LookRotation((hurt.collider.attachedRigidbody.transform.position - hit.collider.attachedRigidbody.transform.position).normalized) * vector;
-                    break;
-
-                case ApplyType.OtherToThis:
-                    _vector = Quaternion.LookRotation((hit.collider.transform.position - hurt.transform.position).normalized) * vector;
-                    break;
-                case ApplyType.OtherToThisRigidbody:
-                    _vector = Quaternion.LookRotation((hit.collider.attachedRigidbody.transform.position - hurt.transform.position).normalized) * vector;
-                    break;
-                case ApplyType.OtherToOtherRigidbody:
-                    _vector = Quaternion.LookRotation((hurt.collider.attachedRigidbody.transform.position - hurt.transform.position).normalized) * vector;
-                    break;
-
-                case ApplyType.OtherRigidbodyToThis:
-                    _vector = Quaternion.LookRotation((hit.collider.transform.position - hurt.collider.attachedRigidbody.transform.position).normalized) * vector;
-                    break;
-                case ApplyType.OtherRigidbodyToThisRigidbody:
-                    _vector = Quaternion.LookRotation((hit.collider.attachedRigidbody.transform.position - hurt.collider.attachedRigidbody.transform.position).normalized) * vector;
-                    break;
-                case ApplyType.OtherRigidbodyToOther:
-                    _vector = Quaternion.LookRotation((hurt.transform.position - hurt.collider.attachedRigidbody.transform.position).normalized) * vector;
-                    break;
-            }
-
-            return _vector;
-
-        }
-        else
-        {
-            Vector3 _rotation = Vector3.zero;
-
-            switch (applyType)
-            {
-
-                case ApplyType.Absolute:
-                    _rotation = vector;
-                    break;
-
-                case ApplyType.RelativeOther:
-                    _rotation = hurt.transform.rotation.eulerAngles + vector;
-                    break;
-                case ApplyType.RelativeOtherRigidbody:
-                    _rotation = hurt.collider.attachedRigidbody.transform.rotation.eulerAngles + vector;
-                    break;
-
-                case ApplyType.RelativeThis:
-                    _rotation = hit.collider.transform.rotation.eulerAngles + vector;
-                    break;
-                case ApplyType.RelativeThisRigidbody:
-                    _rotation = hit.collider.attachedRigidbody.transform.rotation.eulerAngles + vector;
-                    break;
-            }
-
-            return _rotation;
-        }
-    }
-
     [System.Serializable]
     public struct ApplyMovement
     {
         public bool continuous;
         public bool additive;
-        public ApplyType type;
+        public MathStuff.SortVectors.ApplyType type;
         public Vector3 amount;
 
         public void Do(Hit hit, Hurt hurt, bool refContinuous, bool isTorque = false)
@@ -184,7 +58,7 @@ public class Hit : MonoBehaviour
                 {
                     if (!isTorque)
                     {
-                        Vector3 vector = GetCorrectVector(type, hit, hurt, amount);
+                        Vector3 vector = MathStuff.SortVectors.GetCorrectVector(type, hit, hurt, amount);
                         float multiplier = !continuous ? hurt.forceInstant.GetAngleInstant() : hurt.forceContinuous.GetAngleContinuous(Time.deltaTime);
                         Vector3 force = vector * multiplier;
                         if (additive)
@@ -194,7 +68,7 @@ public class Hit : MonoBehaviour
                     }
                     else
                     {
-                        Vector3 vector = GetCorrectVector(type, hit, hurt, amount, true);
+                        Vector3 vector = MathStuff.SortVectors.GetCorrectVector(type, hit, hurt, amount, true);
                         float multiplier = !continuous ? hurt.torqueInstant.GetAngleInstant() : hurt.torqueContinuous.GetAngleContinuous(Time.deltaTime);
                         Vector3 torque = vector * multiplier;
                         if (additive)
@@ -207,9 +81,9 @@ public class Hit : MonoBehaviour
                 {
                     if (!isTorque)
                     {
-                        Vector3 vector = GetCorrectVector(type, hit, hurt, amount);
+                        Vector3 vector = MathStuff.SortVectors.GetCorrectVector(type, hit, hurt, amount);
                         float multiplier = !continuous ? 1.0f : Time.deltaTime;
-                        Vector3 force = vector * multiplier;Debug.Log(force);
+                        Vector3 force = vector * multiplier;
                         if (additive)
                             hurt.collider.attachedRigidbody.AddForce(force, ForceMode.VelocityChange);
                         else
@@ -217,7 +91,7 @@ public class Hit : MonoBehaviour
                     }
                     else
                     {
-                        Vector3 vector = GetCorrectVector(type, hit, hurt, amount, true);
+                        Vector3 vector = MathStuff.SortVectors.GetCorrectVector(type, hit, hurt, amount, true);
                         float multiplier = !continuous ? 1.0f : Time.deltaTime;
                         Vector3 torque = vector * multiplier;
                         if (additive)
@@ -256,10 +130,10 @@ public class Hit : MonoBehaviour
 		public bool continuous;
 		public GameObject spawnPrefab;
 
-		public ApplyType positionType;
+		public MathStuff.SortVectors.ApplyType positionType;
 		public Vector3 position;
 
-		public ApplyType rotationType;
+		public MathStuff.SortVectors.ApplyType rotationType;
 		public Vector3 rotation;
 
 		public ApplyMovement torque;
@@ -269,8 +143,8 @@ public class Hit : MonoBehaviour
         {
             if (continuous == refContinuous)
             {
-                Vector3 pos = GetCorrectVector(positionType, hit, hurt, position);
-                Vector3 rot = GetCorrectVector(rotationType, hit, hurt, rotation, true);
+                Vector3 pos = MathStuff.SortVectors.GetCorrectVector(positionType, hit, hurt, position);
+                Vector3 rot = MathStuff.SortVectors.GetCorrectVector(rotationType, hit, hurt, rotation, true);
 
                 GameObject go = Instantiate(spawnPrefab, pos, Quaternion.Euler(rot)) as GameObject;
                 Hurt _hurt = go.GetComponent<Hurt>();

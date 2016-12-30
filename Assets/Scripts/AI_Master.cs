@@ -5,7 +5,8 @@ using System.Collections.Generic;
 [RequireComponent(typeof(AI_Movement))]
 [RequireComponent(typeof(AI_Orientation))]
 [RequireComponent(typeof(AI_Action))]
-public class AI_Master : MonoBehaviour {
+public class AI_Master : MonoBehaviour
+{
     public MovingObject movingObject
     {
         get

@@ -1,30 +1,38 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Hurt : MonoBehaviour {
-	public new Collider collider {
-		get {
+public class Hurt : MonoBehaviour
+{
+	public new Collider collider
+    {
+		get
+        {
 			return GetComponent<Collider> ();
 		}
 	}
 
 	[System.Serializable]
-	public struct MultiplierBehaviour {
-		private float multiplier {
-			get {
+	public struct MultiplierBehaviour
+    {
+		private float multiplier
+        {
+			get
+            {
 				return multiplierFalloff.Evaluate (angle);
 			}
 		}
 		public AnimationCurve multiplierFalloff;
 
-		public float GetAngleInstant () {
+		public float GetAngleInstant ()
+        {
 			float _multiplier = multiplier;
 
 			AngleUp ();
 
 			return _multiplier;
 		}
-		public float GetAngleContinuous (float timeDelta) {
+		public float GetAngleContinuous (float timeDelta)
+        {
 			float _multiplier = multiplier;
 
 			AngleUp (timeDelta);
@@ -36,20 +44,24 @@ public class Hurt : MonoBehaviour {
 		public float angleUpSpeed;
 		public float angleDownSpeed;
 
-		public void AngleUp () {
+		public void AngleUp ()
+        {
 			angle += angleUpSpeed;
 		}
-		public void AngleUp (float deltaTime) {
+		public void AngleUp (float deltaTime)
+        {
 			angle += angleUpSpeed * deltaTime;
 		}
-		public void AngleDown (float deltaTime) {
+		public void AngleDown (float deltaTime)
+        {
 			if (angle > 0.0f)
 				angle -= angleDownSpeed * deltaTime;
 			if (angle < 0.0f)
 				angle = 0.0f;
 		}
 
-		public void Reset () {
+		public void Reset ()
+        {
 			angle = 0.0f;
 		}
 	}
@@ -63,17 +75,19 @@ public class Hurt : MonoBehaviour {
     public bool continuousClash;
     public bool overrideHit;
 
-	void Start () {
+	void Start ()
+    {
 		torqueInstant.Reset ();
 		torqueContinuous.Reset ();
 		forceInstant.Reset ();
 		forceContinuous.Reset ();
 	}
 
-	void Update () {
-		torqueInstant.AngleDown (Time.deltaTime);
-		torqueContinuous.AngleDown (Time.deltaTime);
-		forceInstant.AngleDown (Time.deltaTime);
-		forceContinuous.AngleDown (Time.deltaTime);
+	void FixedUpdate ()
+    {
+		torqueInstant.AngleDown (Time.fixedDeltaTime);
+		torqueContinuous.AngleDown (Time.fixedDeltaTime);
+		forceInstant.AngleDown (Time.fixedDeltaTime);
+		forceContinuous.AngleDown (Time.fixedDeltaTime);
 	}
 }

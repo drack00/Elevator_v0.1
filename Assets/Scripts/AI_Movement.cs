@@ -3,7 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(NavMeshAgent))]
-public class AI_Movement : MonoBehaviour {
+public class AI_Movement : MonoBehaviour
+{
     [System.Serializable]
     public enum Subroutine
     {

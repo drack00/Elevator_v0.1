@@ -2,7 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class AI_Action : MonoBehaviour {
+public class AI_Action : MonoBehaviour
+{
     [System.Serializable]
     public enum Subroutine
     {

@@ -2,7 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 
-public class AI_Orientation : MonoBehaviour {
+public class AI_Orientation : MonoBehaviour
+{
     [System.Serializable]
     public enum Subroutine
     {
