@@ -188,7 +188,7 @@ public class Hit : MonoBehaviour
                         float multiplier = !continuous ? hurt.forceInstant.GetAngleInstant() : hurt.forceContinuous.GetAngleContinuous(Time.deltaTime);
                         Vector3 force = vector * multiplier;
                         if (additive)
-                            hit.collider.attachedRigidbody.AddForce(force);
+                            hit.collider.attachedRigidbody.AddForce(force, ForceMode.VelocityChange);
                         else
                             hit.collider.attachedRigidbody.velocity = force;
                     }
@@ -198,7 +198,7 @@ public class Hit : MonoBehaviour
                         float multiplier = !continuous ? hurt.torqueInstant.GetAngleInstant() : hurt.torqueContinuous.GetAngleContinuous(Time.deltaTime);
                         Vector3 torque = vector * multiplier;
                         if (additive)
-                            hit.collider.attachedRigidbody.AddTorque(torque);
+                            hit.collider.attachedRigidbody.AddTorque(torque, ForceMode.VelocityChange);
                         else
                             hit.collider.attachedRigidbody.angularVelocity = torque;
                     }
@@ -209,9 +209,9 @@ public class Hit : MonoBehaviour
                     {
                         Vector3 vector = GetCorrectVector(type, hit, hurt, amount);
                         float multiplier = !continuous ? 1.0f : Time.deltaTime;
-                        Vector3 force = vector * multiplier;
+                        Vector3 force = vector * multiplier;Debug.Log(force);
                         if (additive)
-                            hurt.collider.attachedRigidbody.AddForce(force);
+                            hurt.collider.attachedRigidbody.AddForce(force, ForceMode.VelocityChange);
                         else
                             hurt.collider.attachedRigidbody.velocity = force;
                     }
@@ -221,7 +221,7 @@ public class Hit : MonoBehaviour
                         float multiplier = !continuous ? 1.0f : Time.deltaTime;
                         Vector3 torque = vector * multiplier;
                         if (additive)
-                            hurt.collider.attachedRigidbody.AddTorque(torque);
+                            hurt.collider.attachedRigidbody.AddTorque(torque, ForceMode.VelocityChange);
                         else
                             hurt.collider.attachedRigidbody.angularVelocity = torque;
                     }

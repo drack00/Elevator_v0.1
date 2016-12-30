@@ -27,15 +27,14 @@ public class AIControlled_MovingObject : MovingObject
         ai.movement.agent.Resume();
     }
 
-    public float acceleration;
-    public float maxSpeed;
-
     public virtual void FixedUpdate()
     {
         GroundCheck();
 
-        rigidbody.velocity = ai.movement.agent.velocity;
         ai.movement.agent.nextPosition = rigidbody.position;
+
+        Vector3 velocityChange = Vector3.ClampMagnitude(ai.movement.agent.velocity - rigidbody.velocity, ai.movement.agent.speed);
+        rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
     }
 
     [System.Serializable]
