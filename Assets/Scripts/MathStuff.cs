@@ -4,14 +4,6 @@ using System.Collections.Generic;
 
 public static class MathStuff
 {
-	public static void ImpulseForce (Rigidbody rigidbody, Vector3 force) {
-		rigidbody.AddForce (-1 * rigidbody.velocity, ForceMode.VelocityChange);
-		rigidbody.AddForce (force, ForceMode.VelocityChange);
-	}
-	public static void ImpulseTorque (Rigidbody rigidbody, Vector3 torque) {
-		rigidbody.AddTorque (-1 * rigidbody.angularVelocity, ForceMode.VelocityChange);
-		rigidbody.AddTorque (torque, ForceMode.VelocityChange);
-	}
 	public static Transform GetClosestTransform (Vector3 reference, Transform[] transforms){
 		Transform tMin = null;
 		float minDist = Mathf.Infinity;

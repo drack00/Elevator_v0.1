@@ -59,7 +59,9 @@ public class Hurt : MonoBehaviour {
 	public MultiplierBehaviour forceInstant;
 	public MultiplierBehaviour forceContinuous;
 
-	public Hit.ApplyMethod willClash;
+	public bool willClash;
+    public bool continuousClash;
+    public bool overrideHit;
 
 	void Start () {
 		torqueInstant.Reset ();

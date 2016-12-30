@@ -4,32 +4,57 @@ using System.Collections;
 public class AnimationBehaviour : MonoBehaviour {
 	public new Rigidbody rigidbody;
 
-	[System.Serializable]
-	public enum ApplyMethod {
-		None, Instant, Continuous
-	}
-	[System.Serializable]
-	public enum ApplyType {
-		Absolute, 
+    [System.Serializable]
+    public enum ApplyType
+    {
+        Absolute,
 
-		RelativeThis, 
-		RelativeThisRigidbody, 
+        RelativeThis,
+        RelativeThisRigidbody,
+        ThisToThisRigidbody,
+        ThisRigidbodyToThis
+    }
 
-		ThisToThisRigidbody, 
+    [System.Serializable]
+    public struct ApplyMovement
+    {
+        public bool additive;
+        public ApplyType type;
+        public Vector3 amount;
 
-		ThisRigidbodyToThis
-	}
-	[System.Serializable]
-	public struct AnimationPhase {
-		//torque
-		public ApplyMethod torqueMethod;
-		public ApplyType torqueType;
-		public Vector3 torque;
+        public void Do(AnimationBehaviour ab, float multiplier, bool isTorque = false)
+        {
+            if (!isTorque)
+            {
+                Vector3 vector = GetCorrectVector(type, ab, amount);
+                Vector3 force = vector * multiplier;
+                if (additive)
+                    ab.rigidbody.AddForce(force);
+                else
+                    ab.rigidbody.velocity = force;
+            }
+            else
+            {
+                Vector3 vector = GetCorrectVector(type, ab, amount, true);
+                Vector3 torque = vector * multiplier;
+                if (additive)
+                    ab.rigidbody.AddTorque(torque);
+                else
+                    ab.rigidbody.angularVelocity = torque;
+            }
+        }
+    }
+    [System.Serializable]
+	public struct AnimationPhase
+    {
+		public ApplyMovement torque;
+		public ApplyMovement force;
 
-		//force
-		public ApplyMethod forceMethod;
-		public ApplyType forceType;
-		public Vector3 force;
+        public void Do(AnimationBehaviour ab, float multiplier)
+        {
+            torque.Do(ab, multiplier, true);
+            force.Do(ab, multiplier);
+        }
 	}
 	public AnimationPhase onEnable;
 	public AnimationPhase onUpdate;
@@ -41,58 +66,77 @@ public class AnimationBehaviour : MonoBehaviour {
 	public bool blockRightInputs;
 
 	[System.Serializable]
-	public enum UpdateOn {
+	public enum UpdateOn
+    {
 		None, FixedUpdate, Update, LateUpdate
 	}
 	public UpdateOn updateOn;
 
-	public Vector3 GetCorrectVector (ApplyType applyType, Vector3 vector) {
-		Vector3 _vector = Vector3.zero;
+    public static Vector3 GetCorrectVector(ApplyType applyType, AnimationBehaviour ab, Vector3 vector, bool rotation = false)
+    {
+        if (!rotation)
+        {
+            Vector3 _vector = Vector3.zero;
 
-		switch (applyType) {
+            switch (applyType)
+            {
 
-		case ApplyType.Absolute:
-			_vector = vector;
-			break;
+                case ApplyType.Absolute:
+                    _vector = vector;
+                    break;
 
-		case ApplyType.RelativeThis:
-			_vector = transform.TransformDirection (vector);
-			break;
-		case ApplyType.RelativeThisRigidbody:
-			_vector = rigidbody.transform.TransformDirection (vector);
-			break;
+                case ApplyType.RelativeThis:
+                    _vector = ab.transform.TransformDirection(vector);
+                    break;
+                case ApplyType.RelativeThisRigidbody:
+                    _vector = ab.rigidbody.transform.TransformDirection(vector);
+                    break;
+                case ApplyType.ThisToThisRigidbody:
+                    _vector = Quaternion.LookRotation((ab.rigidbody.transform.position - ab.transform.position).normalized) * vector;
+                    break;
+                case ApplyType.ThisRigidbodyToThis:
+                    _vector = Quaternion.LookRotation((ab.transform.position - ab.rigidbody.transform.position).normalized) * vector;
+                    break;
+            }
 
-		case ApplyType.ThisToThisRigidbody:
-			_vector = Quaternion.LookRotation ((rigidbody.transform.position - transform.position).normalized) * vector;
-			break;
+            return _vector;
 
-		case ApplyType.ThisRigidbodyToThis:
-			_vector = Quaternion.LookRotation ((transform.position - rigidbody.transform.position).normalized) * vector;
-			break;
-		}
+        }
+        else
+        {
+            Vector3 _rotation = Vector3.zero;
 
-		return _vector;
-	}
+            switch (applyType)
+            {
 
-	void DoPhase (AnimationPhase phase, float timeDelta) {
-		//torque
-		if (phase.torqueMethod == ApplyMethod.Instant)
-			MathStuff.ImpulseTorque (rigidbody, GetCorrectVector (phase.torqueType, phase.torque));
-		else if (phase.torqueMethod == ApplyMethod.Continuous)
-			rigidbody.AddTorque (GetCorrectVector (phase.torqueType, phase.torque * timeDelta));
+                case ApplyType.Absolute:
+                    _rotation = vector;
+                    break;
 
-		//force
-		if (phase.forceMethod == ApplyMethod.Instant)
-			MathStuff.ImpulseForce (rigidbody, GetCorrectVector (phase.forceType, phase.force));
-		else if (phase.forceMethod == ApplyMethod.Continuous)
-			rigidbody.AddForce (GetCorrectVector (phase.forceType, phase.force * timeDelta));
-	}
+                case ApplyType.RelativeThis:
+                    _rotation = ab.transform.rotation.eulerAngles + vector;
+                    break;
+                case ApplyType.RelativeThisRigidbody:
+                    _rotation = ab.rigidbody.transform.rotation.eulerAngles + vector;
+                    break;
+            }
 
-	void OnEnable () {
+            return _rotation;
+        }
+    }
+
+    void DoPhase (AnimationPhase phase, float timeDelta)
+    {
+        phase.Do(this, timeDelta);
+    }
+
+	void OnEnable ()
+    {
 		DoPhase (onEnable, 1.0f);
 
 		//controls
-		if(rigidbody.GetComponent<Player> () != null) {
+		if(rigidbody.GetComponent<Player> () != null)
+        {
 			if (blockMovement)
 				rigidbody.GetComponent<Player> ().controller.enabled = false;
 			if (blockLeftInputs)
@@ -102,23 +146,28 @@ public class AnimationBehaviour : MonoBehaviour {
 		}
 	}
 
-	void FixedUpdate () {
+	void FixedUpdate ()
+    {
 		if (updateOn == UpdateOn.FixedUpdate)
 			DoUpdate (Time.fixedDeltaTime);
 	}
-	void Update () {
+	void Update ()
+    {
 		if (updateOn == UpdateOn.Update)
 			DoUpdate (Time.deltaTime);
 	}
-	void LateUpdate () {
+	void LateUpdate ()
+    {
 		if (updateOn == UpdateOn.LateUpdate)
 			DoUpdate (Time.deltaTime);
 	}
-	void DoUpdate (float timeDelta) {
+	void DoUpdate (float timeDelta)
+    {
 		DoPhase (onUpdate, timeDelta);
 	}
 
-	void OnDisable () {
+	void OnDisable ()
+    {
 		DoPhase (onDisable, 1.0f);
 
 		//controls
