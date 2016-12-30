@@ -14,6 +14,58 @@ public class AnimationBehaviour : MonoBehaviour {
         ThisToThisRigidbody,
         ThisRigidbodyToThis
     }
+    public static Vector3 GetCorrectVector(ApplyType applyType, AnimationBehaviour ab, Vector3 vector, bool rotation = false)
+    {
+        if (!rotation)
+        {
+            Vector3 _vector = Vector3.zero;
+
+            switch (applyType)
+            {
+
+                case ApplyType.Absolute:
+                    _vector = vector;
+                    break;
+
+                case ApplyType.RelativeThis:
+                    _vector = ab.transform.TransformDirection(vector);
+                    break;
+                case ApplyType.RelativeThisRigidbody:
+                    _vector = ab.rigidbody.transform.TransformDirection(vector);
+                    break;
+                case ApplyType.ThisToThisRigidbody:
+                    _vector = Quaternion.LookRotation((ab.rigidbody.transform.position - ab.transform.position).normalized) * vector;
+                    break;
+                case ApplyType.ThisRigidbodyToThis:
+                    _vector = Quaternion.LookRotation((ab.transform.position - ab.rigidbody.transform.position).normalized) * vector;
+                    break;
+            }
+
+            return _vector;
+
+        }
+        else
+        {
+            Vector3 _rotation = Vector3.zero;
+
+            switch (applyType)
+            {
+
+                case ApplyType.Absolute:
+                    _rotation = vector;
+                    break;
+
+                case ApplyType.RelativeThis:
+                    _rotation = ab.transform.rotation.eulerAngles + vector;
+                    break;
+                case ApplyType.RelativeThisRigidbody:
+                    _rotation = ab.rigidbody.transform.rotation.eulerAngles + vector;
+                    break;
+            }
+
+            return _rotation;
+        }
+    }
 
     [System.Serializable]
     public struct ApplyMovement
@@ -71,59 +123,6 @@ public class AnimationBehaviour : MonoBehaviour {
 		None, FixedUpdate, Update, LateUpdate
 	}
 	public UpdateOn updateOn;
-
-    public static Vector3 GetCorrectVector(ApplyType applyType, AnimationBehaviour ab, Vector3 vector, bool rotation = false)
-    {
-        if (!rotation)
-        {
-            Vector3 _vector = Vector3.zero;
-
-            switch (applyType)
-            {
-
-                case ApplyType.Absolute:
-                    _vector = vector;
-                    break;
-
-                case ApplyType.RelativeThis:
-                    _vector = ab.transform.TransformDirection(vector);
-                    break;
-                case ApplyType.RelativeThisRigidbody:
-                    _vector = ab.rigidbody.transform.TransformDirection(vector);
-                    break;
-                case ApplyType.ThisToThisRigidbody:
-                    _vector = Quaternion.LookRotation((ab.rigidbody.transform.position - ab.transform.position).normalized) * vector;
-                    break;
-                case ApplyType.ThisRigidbodyToThis:
-                    _vector = Quaternion.LookRotation((ab.transform.position - ab.rigidbody.transform.position).normalized) * vector;
-                    break;
-            }
-
-            return _vector;
-
-        }
-        else
-        {
-            Vector3 _rotation = Vector3.zero;
-
-            switch (applyType)
-            {
-
-                case ApplyType.Absolute:
-                    _rotation = vector;
-                    break;
-
-                case ApplyType.RelativeThis:
-                    _rotation = ab.transform.rotation.eulerAngles + vector;
-                    break;
-                case ApplyType.RelativeThisRigidbody:
-                    _rotation = ab.rigidbody.transform.rotation.eulerAngles + vector;
-                    break;
-            }
-
-            return _rotation;
-        }
-    }
 
     void DoPhase (AnimationPhase phase, float timeDelta)
     {
