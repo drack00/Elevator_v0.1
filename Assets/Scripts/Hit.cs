@@ -154,6 +154,10 @@ public class Hit : MonoBehaviour
             }
         }
 	}
+
+    public int maxHurts;
+    public bool retainHurts;
+
     [System.Serializable]
     public class Behaviour
     {
@@ -187,8 +191,6 @@ public class Hit : MonoBehaviour
 	[System.Serializable]
 	public class HitBehaviour : Behaviour
     {
-		public int maxHurts;
-
         public override void Do(Hit hit, Hurt hurt, bool continuous)
         {
             if (hit.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
@@ -251,7 +253,7 @@ public class Hit : MonoBehaviour
 		
 		Hurt hurt = other.GetComponent<Hurt>();
 		
-		if (hurts.Count < hitBehaviour.maxHurts)
+		if (hurts.Count < maxHurts)
         {
             hurts.Add (hurt);
 
@@ -297,6 +299,7 @@ public class Hit : MonoBehaviour
             timeScaler = null;
         }
 
-		hurts.Remove (hurt);
+        if (!retainHurts)
+            hurts.Remove(hurt);
 	}
 }
