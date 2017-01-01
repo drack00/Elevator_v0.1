@@ -2,22 +2,31 @@
 using System.Collections;
 
 [RequireComponent (typeof(Rigidbody))]
-public class MovingObject : MonoBehaviour {
+public class MovingObject : MonoBehaviour
+{
     public Animator animator;
-	[HideInInspector]public new Rigidbody rigidbody {
-		get {
+	public new Rigidbody rigidbody
+    {
+		get
+        {
 			return GetComponent<Rigidbody> ();
 		}
 	}
 
-	public virtual void Clash (){}
+    [HideInInspector]
+    public MiscBox.BlockingMask blockingMask;
+
+    public virtual void Clash (){}
 		
 	private bool _alive;
-	public bool alive {
-		get {
+	public bool alive
+    {
+		get
+        {
 			return _alive;
 		}
-		set {
+		set
+        {
 			_alive = value;
 
 			animator.SetBool ("Alive", _alive);
@@ -31,11 +40,14 @@ public class MovingObject : MonoBehaviour {
 
 	public float maxHealth;
 	private float _health;
-	public float health {
-		get {
+	public float health
+    {
+		get
+        {
 			return _health;
 		}
-		set {
+		set
+        {
 			if (!alive)
 				return;
 
@@ -53,22 +65,28 @@ public class MovingObject : MonoBehaviour {
 		}
 	}
 	public float healthRegen;
-	public void ResetHealth () {
+	public void ResetHealth ()
+    {
 		health = maxHealth;
 	}
 		
-	public bool stunned {
-		get {
+	public bool stunned
+    {
+		get
+        {
 			return stun > 0.0f;
 		}
 	}
 	public float maxStun;
 	private float _stun;
-	public float stun {
-		get {
+	public float stun
+    {
+		get
+        {
 			return _stun;
 		}
-		set {
+		set
+        {
 			if (!alive)
 				return;
 
@@ -83,21 +101,25 @@ public class MovingObject : MonoBehaviour {
 		}
 	}
 	public float stunRecovery;
-	public void ResetStun () {
+	public void ResetStun ()
+    {
 		stun = 0.0f;
 	}
 
-	public void Spawn () {
+	public void Spawn ()
+    {
 		alive = true;
 		ResetHealth ();
 		ResetStun ();
 	}
 
-	public virtual void Start () {
+	public virtual void Start ()
+    {
 		Spawn ();
 	}
 
-	public virtual void Update () {
+	public virtual void Update ()
+    {
 		if (health < maxHealth)
 			health += healthRegen * Time.deltaTime;
 		if (stunned)

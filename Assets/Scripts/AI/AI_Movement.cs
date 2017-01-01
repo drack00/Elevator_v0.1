@@ -341,22 +341,29 @@ public class AI_Movement : MonoBehaviour
         selectedSubroutine = Subroutine.None;
     }
 
-    public bool fixedUpdate;
+    [System.Serializable]
+    public enum UpdateOn
+    {
+        None, FixedUpdate, Update, LateUpdate
+    }
+    public UpdateOn updateOn;
     public void FixedUpdate()
     {
-        if (!fixedUpdate)
-            return;
-
-        OnUpdate();
+        if (updateOn == UpdateOn.FixedUpdate)
+            DoUpdate(Time.fixedDeltaTime);
     }
     public void Update()
     {
-        if (fixedUpdate)
-            return;
-
-        OnUpdate();
+        if (updateOn == UpdateOn.Update)
+            DoUpdate(Time.deltaTime);
     }
-    private void OnUpdate()
+    public void LateUpdate()
+    {
+        if (updateOn == UpdateOn.LateUpdate)
+            DoUpdate(Time.deltaTime);
+    }
+
+    private void DoUpdate(float timeDelta)
     {
         ISubroutine activeSubroutine = defaultSubroutine;
 

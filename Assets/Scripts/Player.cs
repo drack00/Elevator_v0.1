@@ -73,9 +73,6 @@ public class Player : MovingObject
 		}
 	}
 
-    [HideInInspector]
-    public AnimationBehaviour.Blocking blocking;
-
     public override void Clash ()
     {
 		animator.SetTrigger ("Clash");
@@ -87,19 +84,19 @@ public class Player : MovingObject
 
 		activeMoveSet = moveSets[0];
 
-        blocking = 0;
+        blockingMask = 0;
 	}
 
 	public override void Update ()
     {
         //disable blocked/enable unblocked controllers and rigidbodies
-        if ((blocking & AnimationBehaviour.Blocking.Controller) != 0 && controller.enabled)
+        if ((blockingMask & MiscBox.BlockingMask.Controller) != 0 && controller.enabled)
             controller.enabled = false;
-        else if ((blocking & AnimationBehaviour.Blocking.Controller) == 0 && !controller.enabled)
+        else if ((blockingMask & MiscBox.BlockingMask.Controller) == 0 && !controller.enabled)
             controller.enabled = true;
-        if ((blocking & AnimationBehaviour.Blocking.Rigidbody) != 0 && !rigidbody.isKinematic)
+        if ((blockingMask & MiscBox.BlockingMask.Rigidbody) != 0 && !rigidbody.isKinematic)
             rigidbody.isKinematic = true;
-        else if ((blocking & AnimationBehaviour.Blocking.Rigidbody) == 0 && rigidbody.isKinematic)
+        else if ((blockingMask & MiscBox.BlockingMask.Rigidbody) == 0 && rigidbody.isKinematic)
             rigidbody.isKinematic = false;
 
         //update base class
@@ -146,9 +143,9 @@ public class Player : MovingObject
 		animator.SetBool ("Right", CrossPlatformInputManager.GetButton ("Fire2"));
 
 		//mouse button edges
-		if ((blocking & AnimationBehaviour.Blocking.LeftInputs) == 0 && CrossPlatformInputManager.GetButtonDown ("Fire1"))
+		if ((blockingMask & MiscBox.BlockingMask.LeftInputs) == 0 && CrossPlatformInputManager.GetButtonDown ("Fire1"))
 			animator.SetTrigger ("LeftEdge");
-		if ((blocking & AnimationBehaviour.Blocking.RightInputs) == 0 && CrossPlatformInputManager.GetButtonDown ("Fire2"))
+		if ((blockingMask & MiscBox.BlockingMask.RightInputs) == 0 && CrossPlatformInputManager.GetButtonDown ("Fire2"))
 			animator.SetTrigger ("RightEdge");
 	}
 }
