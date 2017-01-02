@@ -3,48 +3,32 @@ using System.Collections;
 
 public class MiscBox : ActiveFrameData
 {
-    [System.Serializable]
-    public enum Phase
-    {
-        Enable, Disable, Update
-    }
-
-    [System.Flags]
-    [System.Serializable]
-    public enum BlockingMask
-    {
-        LeftInputs = 0x0001,
-        RightInputs = 0x0002,
-        Controller = 0x0004,
-        Rigidbody = 0x0008
-    }
+    public bool additive = true;
+    [EnumFlag("Blocking Mask")]
+    public MovingObject.BlockingMask blockingMask;
 
     public Behaviour enableBehaviour;
 	public Behaviour disableBehaviour;
 	public Behaviour updateBehaviour;
 
-    public bool additive = true;
-    [EnumFlag("Blocking Mask")]
-    public BlockingMask blockingMask;
-
-    public void OnEnable ()
+    public void OnEnable()
     {
+        enableBehaviour.Do(false, this);
+
         if (additive && collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
         {
             MovingObject mo = collider.attachedRigidbody.gameObject.GetComponent<MovingObject>();
 
-            mo.blockingMask += (int)blockingMask;
+            mo.blockingMask |= blockingMask;
         }
-
-        enableBehaviour.Do(false, this);
-	}
+    }
     public void OnDisable()
     {
         if (additive && collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
         {
             MovingObject mo = collider.attachedRigidbody.gameObject.GetComponent<MovingObject>();
 
-            mo.blockingMask -= (int)blockingMask;
+            mo.blockingMask ^= blockingMask;
         }
 
         disableBehaviour.Do(false, this);

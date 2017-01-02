@@ -1,10 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+[RequireComponent(typeof(Animator))]
 [RequireComponent (typeof(Rigidbody))]
 public class MovingObject : MonoBehaviour
 {
-    public Animator animator;
+    public Animator animator
+    {
+        get
+        {
+            return GetComponent<Animator> ();
+        }
+    }
+
 	public new Rigidbody rigidbody
     {
 		get
@@ -13,8 +21,19 @@ public class MovingObject : MonoBehaviour
 		}
 	}
 
-    [HideInInspector]
-    public MiscBox.BlockingMask blockingMask;
+    [System.Serializable]
+    [System.Flags]
+    public enum BlockingMask
+    {
+        LeftInputs = 1,
+        RightInputs = 2,
+        Controller = 4,
+        Rigidbody = 8
+    }
+
+    //[HideInInspector]
+    [EnumFlag("Blocking Mask")]
+    public BlockingMask blockingMask;
 
     public virtual void Clash (){}
 		
@@ -32,9 +51,18 @@ public class MovingObject : MonoBehaviour
 			animator.SetBool ("Alive", _alive);
 		}
 	}
+    public virtual void Kill ()
+    {
+        blockingMask = 0;
+        ResetStun();
 
+        alive = false;
+    }
     public virtual void Dead ()
     {
+        blockingMask = 0;
+        ResetStun();
+
         gameObject.SetActive(false);
     }
 
@@ -60,12 +88,12 @@ public class MovingObject : MonoBehaviour
 
 			animator.SetFloat ("Health", _health);
 
-			if (Mathf.Approximately (_health, Mathf.Epsilon))
-				alive = false;
+            if (Mathf.Approximately(_health, Mathf.Epsilon))
+                Kill();
 		}
 	}
 	public float healthRegen;
-	public void ResetHealth ()
+	public virtual void ResetHealth ()
     {
 		health = maxHealth;
 	}
@@ -101,21 +129,22 @@ public class MovingObject : MonoBehaviour
 		}
 	}
 	public float stunRecovery;
-	public void ResetStun ()
+	public virtual void ResetStun ()
     {
 		stun = 0.0f;
 	}
 
-	public void Spawn ()
+	public virtual void Spawn ()
     {
-		alive = true;
+        blockingMask = 0;
+        alive = true;
 		ResetHealth ();
 		ResetStun ();
 	}
 
 	public virtual void Start ()
     {
-		Spawn ();
+        Spawn ();
 	}
 
 	public virtual void Update ()

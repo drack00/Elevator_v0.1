@@ -83,20 +83,18 @@ public class Player : MovingObject
 		base.Start ();
 
 		activeMoveSet = moveSets[0];
-
-        blockingMask = 0;
 	}
 
 	public override void Update ()
     {
         //disable blocked/enable unblocked controllers and rigidbodies
-        if ((blockingMask & MiscBox.BlockingMask.Controller) != 0 && controller.enabled)
+        if ((blockingMask & BlockingMask.Controller) != 0 && controller.enabled)
             controller.enabled = false;
-        else if ((blockingMask & MiscBox.BlockingMask.Controller) == 0 && !controller.enabled)
+        else if ((blockingMask & BlockingMask.Controller) == 0 && !controller.enabled)
             controller.enabled = true;
-        if ((blockingMask & MiscBox.BlockingMask.Rigidbody) != 0 && !rigidbody.isKinematic)
+        if ((blockingMask & BlockingMask.Rigidbody) != 0 && !rigidbody.isKinematic)
             rigidbody.isKinematic = true;
-        else if ((blockingMask & MiscBox.BlockingMask.Rigidbody) == 0 && rigidbody.isKinematic)
+        else if ((blockingMask & BlockingMask.Rigidbody) == 0 && rigidbody.isKinematic)
             rigidbody.isKinematic = false;
 
         //update base class
@@ -143,9 +141,9 @@ public class Player : MovingObject
 		animator.SetBool ("Right", CrossPlatformInputManager.GetButton ("Fire2"));
 
 		//mouse button edges
-		if ((blockingMask & MiscBox.BlockingMask.LeftInputs) == 0 && CrossPlatformInputManager.GetButtonDown ("Fire1"))
+		if ((blockingMask & BlockingMask.LeftInputs) == 0 && CrossPlatformInputManager.GetButtonDown ("Fire1"))
 			animator.SetTrigger ("LeftEdge");
-		if ((blockingMask & MiscBox.BlockingMask.RightInputs) == 0 && CrossPlatformInputManager.GetButtonDown ("Fire2"))
+		if ((blockingMask & BlockingMask.RightInputs) == 0 && CrossPlatformInputManager.GetButtonDown ("Fire2"))
 			animator.SetTrigger ("RightEdge");
 	}
 }

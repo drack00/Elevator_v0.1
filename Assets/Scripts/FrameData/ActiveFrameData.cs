@@ -24,7 +24,7 @@ public class ActiveFrameData : FrameData
             FrameData _hit = !invert ? hit : hurt;
             FrameData _hurt = !invert ? hurt : hit;
 
-            force.Do(continuous, _hit, _hurt, false);
+            force.Do(continuous, _hit, _hurt);
             torque.Do(continuous, _hit, _hurt, true);
 
             if (_hurt.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)

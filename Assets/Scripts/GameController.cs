@@ -15,17 +15,21 @@ public class GameController : MonoBehaviour
     [System.Serializable]
     public class Wave
     {
-        public AnimationCurve spawnCurve;
-        public float spawnRate;
+        public float startWaveDelay;
+
+        public AnimationCurve spawnCurve = AnimationCurve.Linear(1.0f, 1.0f, 1.0f, 1.0f);
+        public float spawnRate = 1.0f;
         private float spawnIndex;
+
         [System.Serializable]
         public enum SpawnMethod
         {
             Roundrobin, Curve, Weighted, Random
         }
+
         public GameObject[] prefabs;
         public SpawnMethod prefabsMethod;
-        public AnimationCurve prefabsCurve;
+        public AnimationCurve prefabsCurve = AnimationCurve.Linear(1.0f, 1.0f, 1.0f, 1.0f);
         private int prefabsIndex;
         private GameObject currentPrefab
         {
@@ -56,9 +60,10 @@ public class GameController : MonoBehaviour
                 return null;
             }
         }
+
         public Transform[] points;
         public SpawnMethod pointsMethod;
-        public AnimationCurve pointsCurve;
+        public AnimationCurve pointsCurve = AnimationCurve.Linear(1.0f, 1.0f, 1.0f, 1.0f);
         private int pointsIndex;
         private Transform currentPoint
         {
@@ -132,6 +137,8 @@ public class GameController : MonoBehaviour
 
         public bool despawnOnEnd;
 
+        public float endWaveDelay;
+
         public IEnumerator Update (List<GameObject> _gos = null)
         {
             gos = new List<GameObject>();
@@ -145,6 +152,14 @@ public class GameController : MonoBehaviour
             prefabsIndex = 0;
             spawnIndex = 0.0f;
             int lastSpawnIndex = 0;
+
+            float _startWaveDelay = 0.0f;
+            while(_startWaveDelay < startWaveDelay)
+            {
+                yield return null;
+
+                _startWaveDelay += Time.deltaTime;
+            }
 
             interrupt = false;
             while(!interrupt && !isWaveComplete)
@@ -177,6 +192,14 @@ public class GameController : MonoBehaviour
             {
                 if (!go.activeSelf)
                     Destroy(go);
+            }
+
+            float _endWaveDelay = 0.0f;
+            while (_endWaveDelay < endWaveDelay)
+            {
+                yield return null;
+
+                _endWaveDelay += Time.deltaTime;
             }
 
             GameController.singleton.currentWave = GameController.singleton.nextWave;
