@@ -47,12 +47,23 @@ public class HitBox : ActiveFrameData
 	}
 	void OnDisable ()
     {
+        foreach(HurtBox hurt in hurts)
+        {
+            if (hurt != null &&
+                hurt != hurt.collider &&
+                hurt.collider.attachedRigidbody != null &&
+                hurt.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
+                hurt.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>().Release();
+        }
+
         hurts = new List<HurtBox> ();
-	}
+    }
 		
 	void OnTriggerEnter (Collider other)
     {
-		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || other.GetComponent<HurtBox>() == null)
+		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || 
+            other.GetComponent<HurtBox>() == null ||
+            hurts.Contains(other.GetComponent<HurtBox>()))
 			return;
 
         HurtBox hurt = other.GetComponent<HurtBox>();
@@ -71,7 +82,9 @@ public class HitBox : ActiveFrameData
 
 	void OnTriggerStay (Collider other)
     {
-		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || other.GetComponent<HurtBox>() == null)
+		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || 
+            other.GetComponent<HurtBox>() == null || 
+            !hurts.Contains(other.GetComponent<HurtBox>()))
 			return;
 
         HurtBox hurt = other.GetComponent<HurtBox>();
@@ -95,8 +108,13 @@ public class HitBox : ActiveFrameData
 
 	void OnTriggerExit (Collider other)
     {
-		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || other.GetComponent<HurtBox>() == null)
+		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || 
+            other.GetComponent<HurtBox>() == null || 
+            !hurts.Contains(other.GetComponent<HurtBox>()))
 			return;
+
+        if (other.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
+            other.attachedRigidbody.gameObject.GetComponent<MovingObject>().Release();
 
         HurtBox hurt = other.GetComponent<HurtBox>();
 

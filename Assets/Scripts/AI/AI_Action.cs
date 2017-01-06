@@ -15,7 +15,13 @@ public class AI_Action : MonoBehaviour
         void Do(AI_Action action);
     }
 
-    public Animator animator;
+    public Animator animator
+    {
+        get
+        {
+            return GetComponent<Animator>();
+        }
+    }
 
     [System.Serializable]
     public class Default : ISubroutine
@@ -47,28 +53,7 @@ public class AI_Action : MonoBehaviour
         selectedSubroutine = Subroutine.None;
     }
 
-    [System.Serializable]
-    public enum UpdateOn
-    {
-        None, FixedUpdate, Update, LateUpdate
-    }
-    public UpdateOn updateOn;
-    public void FixedUpdate()
-    {
-        if (updateOn == UpdateOn.FixedUpdate)
-            DoUpdate(Time.fixedDeltaTime);
-    }
     public void Update()
-    {
-        if (updateOn == UpdateOn.Update)
-            DoUpdate(Time.deltaTime);
-    }
-    public void LateUpdate()
-    {
-        if (updateOn == UpdateOn.LateUpdate)
-            DoUpdate(Time.deltaTime);
-    }
-    private void DoUpdate(float timeDelta)
     {
         ISubroutine activeSubroutine = defaultSubroutine;
 

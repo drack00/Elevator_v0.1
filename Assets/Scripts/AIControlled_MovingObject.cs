@@ -13,6 +13,8 @@ public class AIControlled_MovingObject : MovingObject
         }
     }
 
+    public bool airControl;
+
     public virtual void Awake ()
     {
         ai.movement.agent.updatePosition = false;
@@ -31,10 +33,13 @@ public class AIControlled_MovingObject : MovingObject
     {
         GroundCheck();
 
-        ai.movement.agent.nextPosition = rigidbody.position;
+        if (m_IsGrounded || airControl)
+        {
+            ai.movement.agent.nextPosition = rigidbody.position;
 
-        Vector3 velocityChange = Vector3.ClampMagnitude(ai.movement.agent.velocity - rigidbody.velocity, ai.movement.agent.speed);
-        rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
+            Vector3 velocityChange = Vector3.ClampMagnitude(ai.movement.agent.velocity - rigidbody.velocity, ai.movement.agent.speed);
+            rigidbody.AddForce(velocityChange, ForceMode.VelocityChange);
+        }
     }
 
     [System.Serializable]

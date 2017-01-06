@@ -31,8 +31,8 @@ public class ActiveFrameData : FrameData
             {
                 MovingObject mo = _hit.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>();
 
-                mo.health = damage.Do(continuous, mo.health);
-                mo.stun = stun.Do(continuous, mo.stun);
+                mo.health = damage.Do(mo.health);
+                mo.stun = stun.Do(mo.stun);
             }
 
             foreach (Spawn spawn in spawns)

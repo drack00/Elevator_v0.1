@@ -225,29 +225,7 @@ public class AI_Master : MonoBehaviour
     }
     public Profile[] profiles;
 
-    [System.Serializable]
-    public enum UpdateOn
-    {
-        None, FixedUpdate, Update, LateUpdate
-    }
-    public UpdateOn updateOn;
-    public void FixedUpdate()
-    {
-        if (updateOn == UpdateOn.FixedUpdate)
-            DoUpdate(Time.fixedDeltaTime);
-    }
     public void Update()
-    {
-        if (updateOn == UpdateOn.Update)
-            DoUpdate(Time.deltaTime);
-    }
-    public void LateUpdate()
-    {
-        if (updateOn == UpdateOn.LateUpdate)
-            DoUpdate(Time.deltaTime);
-    }
-
-    public void DoUpdate(float timeDelta)
     {
         //assign profiles to slave AIs if conditions are met, if profile is masked pass to next highest priority profile, break when all slave profiles are set
         bool movementMasked = true;

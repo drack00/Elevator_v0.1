@@ -45,7 +45,11 @@ public class MovingObject : MonoBehaviour
     }
     public virtual void Grabbed ()
     {
-        animator.SetTrigger("Grabbed");
+        animator.SetBool("Grabbed", true);
+    }
+    public virtual void Release()
+    {
+        animator.SetBool("Grabbed", false);
     }
 
     private bool _alive;

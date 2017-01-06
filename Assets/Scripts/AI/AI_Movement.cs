@@ -95,7 +95,7 @@ public class AI_Movement : MonoBehaviour
                 if (distance < patrolTolerance)
                     currentPatrolIndex = nextPatrolIndex;
 
-                movement.agent.SetDestination(targetPoint.position);
+                movement.SetDestination(targetPoint.position);
             }
         }
         public Patrol patrolSubroutine;
@@ -124,7 +124,7 @@ public class AI_Movement : MonoBehaviour
                 Vector3 _flockOffset = Quaternion.LookRotation((targetPosition - movement.agent.transform.position).normalized) * flockOffset;
                 Vector3 destination = targetPosition + _flockOffset;
 
-                movement.agent.SetDestination(destination);
+                movement.SetDestination(destination);
             }
         }
         public Flock flockSubroutine;
@@ -152,7 +152,7 @@ public class AI_Movement : MonoBehaviour
                     targetSet = true;
                 }
 
-                movement.agent.SetDestination(targetPosition);
+                movement.SetDestination(targetPosition);
             }
         }
         public Idle idleSubroutine;
@@ -194,7 +194,7 @@ public class AI_Movement : MonoBehaviour
                 Vector3 targetVector = (movement.agent.transform.position - target.position).normalized;
                 Vector3 destination = (targetVector * movement.haveTargetSubroutine.farCutoff) + target.position;
 
-                movement.agent.SetDestination(destination);
+                movement.SetDestination(destination);
             }
         }
         public FarApproach farApproachSubroutine;
@@ -209,7 +209,7 @@ public class AI_Movement : MonoBehaviour
                 Vector3 targetVector = (movement.agent.transform.position - target.position).normalized;
                 Vector3 destination = (targetVector * movement.haveTargetSubroutine.nearCutoff) + target.position;
 
-                movement.agent.SetDestination(destination);
+                movement.SetDestination(destination);
             }
         }
         public NearApproach nearApproachSubroutine;
@@ -224,7 +224,7 @@ public class AI_Movement : MonoBehaviour
                 Vector3 rangeVector = (movement.agent.transform.position - target.position).normalized;
                 Vector3 destination = (rangeVector * movement.haveTargetSubroutine.farCutoff) + target.position;
 
-                movement.agent.SetDestination(destination);
+                movement.SetDestination(destination);
             }
         }
         public AtRange atRangeSubroutine;
@@ -246,7 +246,7 @@ public class AI_Movement : MonoBehaviour
                 Vector3 destination = (rangeVector * flankRadius) + target.position;
                 destination = MathStuff.RotateAroundPivot(destination, target.position, rotation);
 
-                movement.agent.SetDestination(destination);
+                movement.SetDestination(destination);
             }
         }
         public Flank flankSubroutine;
@@ -331,6 +331,19 @@ public class AI_Movement : MonoBehaviour
     }
     public Targeted targetedSubroutine;
 
+    public float stickToMeshDistance;
+    public void SetDestination (Vector3 destination)
+    {
+        if (stickToMeshDistance > 0.0f)
+        {
+            NavMeshHit hit;
+            if (NavMesh.SamplePosition(destination, out hit, stickToMeshDistance, agent.areaMask))
+                agent.SetDestination(hit.position);
+        }
+        else
+            agent.SetDestination(destination);
+    }
+
     [HideInInspector]
     public Subroutine selectedSubroutine;
     [HideInInspector]
@@ -340,30 +353,7 @@ public class AI_Movement : MonoBehaviour
     {
         selectedSubroutine = Subroutine.None;
     }
-
-    [System.Serializable]
-    public enum UpdateOn
-    {
-        None, FixedUpdate, Update, LateUpdate
-    }
-    public UpdateOn updateOn;
-    public void FixedUpdate()
-    {
-        if (updateOn == UpdateOn.FixedUpdate)
-            DoUpdate(Time.fixedDeltaTime);
-    }
     public void Update()
-    {
-        if (updateOn == UpdateOn.Update)
-            DoUpdate(Time.deltaTime);
-    }
-    public void LateUpdate()
-    {
-        if (updateOn == UpdateOn.LateUpdate)
-            DoUpdate(Time.deltaTime);
-    }
-
-    private void DoUpdate(float timeDelta)
     {
         ISubroutine activeSubroutine = defaultSubroutine;
 

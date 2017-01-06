@@ -61,9 +61,9 @@ public class FrameData : MonoBehaviour
         public bool additive = true;
         public float amount;
 
-        public float Do(bool continuous, float refAmount)
+        public float Do(float refAmount)
         {
-            if (continuous)
+            if (additive)
                 return refAmount + amount;
             else
                 return amount;
