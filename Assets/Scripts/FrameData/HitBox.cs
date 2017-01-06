@@ -15,15 +15,7 @@ public class HitBox : ActiveFrameData
     {
         public void Do(bool continuous, HitBox hit, HurtBox hurt)
         {
-            if (hit.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
-            {
-                if (hurt.willClash && continuous == hurt.continuousClash)
-                {
-                    hit.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>().Clash();
-                    if (hurt.overrideHit)
-                        return;
-                }
-            }
+            if (hurt.Clash(hit, continuous)) return;
 
             base.Do(continuous, hit, hurt);
         }

@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-//[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(Animator))]
 [RequireComponent (typeof(Rigidbody))]
 public class MovingObject : MonoBehaviour
 {
@@ -31,13 +31,24 @@ public class MovingObject : MonoBehaviour
         Rigidbody = 8
     }
 
-    //[HideInInspector]
+    [HideInInspector]
     [EnumFlag("Blocking Mask")]
     public BlockingMask blockingMask;
 
-    public virtual void Clash (){}
-		
-	private bool _alive;
+    public virtual void Clash ()
+    {
+        animator.SetTrigger("Clash");
+    }
+    public virtual void Grab()
+    {
+        animator.SetTrigger("Grab");
+    }
+    public virtual void Grabbed ()
+    {
+        animator.SetTrigger("Grabbed");
+    }
+
+    private bool _alive;
 	public bool alive
     {
 		get

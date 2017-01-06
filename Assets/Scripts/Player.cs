@@ -73,11 +73,6 @@ public class Player : MovingObject
 		}
 	}
 
-    public override void Clash ()
-    {
-		animator.SetTrigger ("Clash");
-	}
-
 	public override void Start ()
     {
 		base.Start ();
