@@ -53,7 +53,10 @@ public class HitBox : ActiveFrameData
                 hurt != hurt.collider &&
                 hurt.collider.attachedRigidbody != null &&
                 hurt.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
-                hurt.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>().Release();
+            {
+                if (hurt is GrabBox)
+                    (hurt as GrabBox).Release(this);
+            }
         }
 
         hurts = new List<HurtBox> ();
@@ -113,10 +116,10 @@ public class HitBox : ActiveFrameData
             !hurts.Contains(other.GetComponent<HurtBox>()))
 			return;
 
-        if (other.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
-            other.attachedRigidbody.gameObject.GetComponent<MovingObject>().Release();
-
         HurtBox hurt = other.GetComponent<HurtBox>();
+
+        if (hurt is GrabBox)
+            (hurt as GrabBox).Release(this);
 
         TimeScaleManager.singleton.ResetTimeScale(other.gameObject);
 

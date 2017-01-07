@@ -4,6 +4,13 @@ using System.Collections.Generic;
 
 public static class MathStuff
 {
+
+    public static Vector3 SuperSmoothLerp(Vector3 followStart, Vector3 targetStart, Vector3 newTarget, float time, float speed)
+    {
+        Vector3 newFollow = followStart - targetStart + (newTarget - targetStart) / (speed * time);
+        return newTarget - (newTarget - targetStart) / (speed * time) + newFollow * Mathf.Exp(-speed * time);
+    }
+
     public static class SortVectors
     {
         [System.Serializable]

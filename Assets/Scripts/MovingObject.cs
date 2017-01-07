@@ -25,29 +25,42 @@ public class MovingObject : MonoBehaviour
     [System.Flags]
     public enum BlockingMask
     {
-        LeftInputs = 1,
-        RightInputs = 2,
-        Controller = 4,
-        Rigidbody = 8
+        Rigidbody = 1,
+
+        LeftInputs = 16,
+        RightInputs = 32,
+        Controller = 64,
+
+        AI = AI_Movement | AI_Orientation | AI_Action,
+        AI_Movement = 128,
+        AI_Orientation = 256,
+        AI_Action = 512
     }
 
     [HideInInspector]
     [EnumFlag("Blocking Mask")]
     public BlockingMask blockingMask;
 
+    //clash function
     public virtual void Clash ()
     {
         animator.SetTrigger("Clash");
     }
+
+    //grab functions
     public virtual void Grab()
     {
-        animator.SetTrigger("Grab");
+        animator.SetBool("Grab", true);
+    }
+    public virtual void Release()
+    {
+        animator.SetBool("Grab", false);
     }
     public virtual void Grabbed ()
     {
         animator.SetBool("Grabbed", true);
     }
-    public virtual void Release()
+    public virtual void Released()
     {
         animator.SetBool("Grabbed", false);
     }

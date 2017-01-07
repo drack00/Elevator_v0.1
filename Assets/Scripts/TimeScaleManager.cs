@@ -38,9 +38,7 @@ public class TimeScaleManager : MonoBehaviour
     public void StartDurationTimeScale(float timeScale, float timeScaleDuration)
     {
         if (!onTimeScale)
-        {
             StartCoroutine(DurationTimeScale(timeScale, timeScaleDuration));
-        }
     }
     private IEnumerator DurationTimeScale(float timeScale, float timeScaleDuration)
     {
