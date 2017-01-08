@@ -82,6 +82,8 @@ public class MovingObject : MonoBehaviour
                 position = new Vector3(-1 * position.x, position.y, position.z);
             position += transform.position;
             other.rigidbody.MovePosition(position);
+            Vector3 faceDir = (transform.position - other.rigidbody.position).normalized;
+            other.rigidbody.MoveRotation(Quaternion.LookRotation(faceDir));
 
             yield return null;
         }

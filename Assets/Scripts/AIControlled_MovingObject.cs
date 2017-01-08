@@ -38,6 +38,10 @@ public class AIControlled_MovingObject : MovingObject
         {
             root.rotation = ai.orientation.desiredRotation;
         }
+
+        //controller animation
+        animator.SetBool("Grounded", m_IsGrounded);
+        animator.SetFloat("MoveSpeed", rigidbody.velocity.magnitude);
     }
 
     public virtual void FixedUpdate()
