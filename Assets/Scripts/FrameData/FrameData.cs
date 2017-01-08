@@ -41,21 +41,21 @@ public class FrameData : MonoBehaviour
                     multiplier = _hurt.torque.GetAngle(multiplier);
             }
 
-            Vector3 vector = MathStuff.SortVectors.GetCorrectVector(type, amount, hit.collider, hurt.collider, isTorque) * multiplier;
+            Vector3 vector = MathStuff.SortVectors.GetCorrectVector(type, amount, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, isTorque) * multiplier;
 
             if (!isTorque)
             {   
                 if (additive)
-                    hurt.collider.attachedRigidbody.AddForce(vector, ForceMode.VelocityChange);
+                    hurt.rigidbody.AddForce(vector, ForceMode.VelocityChange);
                 else
-                    hurt.collider.attachedRigidbody.velocity = vector;
+                    hurt.rigidbody.velocity = vector;
             }
             else
             {
                 if (additive)
-                    hurt.collider.attachedRigidbody.AddTorque(vector, ForceMode.VelocityChange);
+                    hurt.rigidbody.AddTorque(vector, ForceMode.VelocityChange);
                 else
-                    hurt.collider.attachedRigidbody.angularVelocity = vector;
+                    hurt.rigidbody.angularVelocity = vector;
             }
         }
     }
@@ -90,8 +90,8 @@ public class FrameData : MonoBehaviour
 
         public void Do(bool continuous, FrameData hit, FrameData hurt = null)
         {
-            Vector3 pos = MathStuff.SortVectors.GetCorrectVector(positionType, position, hit.collider, hurt.collider);
-            Vector3 rot = MathStuff.SortVectors.GetCorrectVector(rotationType, rotation, hit.collider, hurt.collider, true);
+            Vector3 pos = MathStuff.SortVectors.GetCorrectVector(positionType, position, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform);
+            Vector3 rot = MathStuff.SortVectors.GetCorrectVector(rotationType, rotation, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, true);
 
             GameObject go = Instantiate(spawnPrefab, pos, Quaternion.Euler(rot)) as GameObject;
             HurtBox _hurt = go.GetComponent<HurtBox>();

@@ -3,31 +3,31 @@ using System.Collections;
 
 public class MiscBox : ActiveFrameData
 {
+    public MovingObject.BlockingMask blockingMask;
+    public bool additive = true;
+
     public Behaviour enableBehaviour;
 	public Behaviour disableBehaviour;
 	public Behaviour updateBehaviour;
 
     public void OnEnable()
     {
-        if (collider == null ||
-            collider.attachedRigidbody == null)
-            return;
-
         enableBehaviour.Do(false, this);
+
+        if (additive)
+            mo.blockingMask |= blockingMask;
     }
     public void OnDisable()
     {
-        if (collider == null ||
-            collider.attachedRigidbody == null)
-            return;
+        if (additive)
+            mo.blockingMask ^= blockingMask;
         
         disableBehaviour.Do(false, this);
     }
     public void Update ()
     {
-        if (collider == null ||
-            collider.attachedRigidbody == null)
-            return;
+        if (!additive)
+            mo.blockingMask = blockingMask;
 
         updateBehaviour.Do(true, this);
     }

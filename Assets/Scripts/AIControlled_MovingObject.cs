@@ -14,6 +14,7 @@ public class AIControlled_MovingObject : MovingObject
     }
 
     public bool airControl;
+    public Transform root;
 
     public virtual void Awake ()
     {
@@ -27,6 +28,16 @@ public class AIControlled_MovingObject : MovingObject
         base.Start();
 
         ai.movement.agent.Resume();
+    }
+
+    public override void Update()
+    {
+        base.Update();
+
+        if ((blockingMask & BlockingMask.AI_Orientation) == 0 && (m_IsGrounded || airControl))
+        {
+            root.rotation = ai.orientation.desiredRotation;
+        }
     }
 
     public virtual void FixedUpdate()

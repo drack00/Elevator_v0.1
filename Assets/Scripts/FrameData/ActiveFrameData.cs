@@ -27,13 +27,8 @@ public class ActiveFrameData : FrameData
             force.Do(continuous, _hit, _hurt);
             torque.Do(continuous, _hit, _hurt, true);
 
-            if (_hurt.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
-            {
-                MovingObject mo = _hit.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>();
-
-                mo.health = damage.Do(mo.health);
-                mo.stun = stun.Do(mo.stun);
-            }
+            _hit.mo.health = damage.Do(_hit.mo.health);
+            _hit.mo.stun = stun.Do(_hit.mo.stun);
 
             foreach (Spawn spawn in spawns)
             {

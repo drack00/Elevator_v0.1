@@ -261,10 +261,8 @@ public class AI_Movement : MonoBehaviour
         {
             GameObject target = movement.activeTarget.gameObject;
 
-            if ((target.layer & fleeLayerMask) != 0)
+            if ((LayerMask.GetMask(LayerMask.LayerToName(target.layer)) & fleeLayerMask) != 0)
                 fleeSubroutine.Do(movement);
-            else if ((target.layer & dodgeLayerMask) != 0)
-                dodgeSubroutine.Do(movement);
         }
 
         public LayerMask fleeLayerMask;
@@ -297,37 +295,6 @@ public class AI_Movement : MonoBehaviour
             }
         }
         public Flee fleeSubroutine;
-
-        public LayerMask dodgeLayerMask;
-        [System.Serializable]
-        public class Dodge : ISubroutine
-        {
-            public float distance;
-            public float cooldown;
-            private float _cooldown;
-            public void Reset() { _cooldown = 0.0f; }
-
-            public void Do(AI_Movement movement)
-            {
-                if (Mathf.Approximately(_cooldown, Mathf.Epsilon))
-                {
-                    Transform target = movement.activeTarget;
-                    Vector3 rangeVector = (movement.agent.transform.position - target.position).normalized;
-                    Vector3 destination = (rangeVector * distance) + movement.agent.transform.position;
-
-                    movement.agent.SetDestination(destination);
-
-                    _cooldown = cooldown;
-                }
-                else
-                {
-                    _cooldown -= Time.deltaTime;
-                    if (_cooldown < 0.0f)
-                        _cooldown = 0.0f;
-                }
-            }
-        }
-        public Dodge dodgeSubroutine;
     }
     public Targeted targetedSubroutine;
 
@@ -337,7 +304,7 @@ public class AI_Movement : MonoBehaviour
         if (stickToMesh)
         {
             NavMeshHit hit;
-            if (NavMesh.SamplePosition(destination, out hit, agent.height, agent.areaMask))
+            if (NavMesh.SamplePosition(destination, out hit, agent.height * 2.0f, agent.areaMask))
                 agent.SetDestination(hit.position);
         }
         else

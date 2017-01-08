@@ -42,14 +42,6 @@ public class MovingObject : MonoBehaviour
     [HideInInspector]
     [EnumFlag("Blocking Mask")]
     public BlockingMask blockingMask;
-    public void AddBlockingMask(BlockingMask _blockingMask)
-    {
-        blockingMask |= _blockingMask;
-    }
-    public void RemoveBlockingMask(BlockingMask _blockingMask)
-    {
-        blockingMask ^= _blockingMask;
-    }
 
     //clash function
     public virtual void Clash ()

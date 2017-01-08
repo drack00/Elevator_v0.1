@@ -39,10 +39,15 @@ public static class MathStuff
             OtherRigidbodyToOther,
             OtherRigidbodyToThisRigidbody
         }
-        public static Vector3 GetCorrectVector(ApplyType applyType, Vector3 vector, Collider hit, Collider hurt = null, bool useRotation = false)
+        public static Vector3 GetCorrectVector(ApplyType applyType, Vector3 vector, Transform a0, Transform a1 = null, Transform b0 = null, Transform b1 = null, bool useRotation = false)
         {
-            if (hurt == null)
-                hurt = hit;
+            if (a1 == null)
+                a1 = a0;
+
+            if (b0 == null)
+                b0 = a0;
+            if (b1 == null)
+                b1 = b0;
 
             if (!useRotation)
             {
@@ -56,56 +61,56 @@ public static class MathStuff
                         break;
 
                     case ApplyType.RelativeThis:
-                        _vector = hit.transform.TransformDirection(vector);
+                        _vector = a0.TransformDirection(vector);
                         break;
                     case ApplyType.RelativeThisRigidbody:
-                        _vector = hit.attachedRigidbody.transform.TransformDirection(vector);
+                        _vector = a1.TransformDirection(vector);
                         break;
                     case ApplyType.RelativeOther:
-                        _vector = hurt.transform.TransformDirection(vector);
+                        _vector = b0.TransformDirection(vector);
                         break;
                     case ApplyType.RelativeOtherRigidbody:
-                        _vector = hurt.attachedRigidbody.transform.TransformDirection(vector);
+                        _vector = b1.TransformDirection(vector);
                         break;
 
                     case ApplyType.ThisToThisRigidbody:
-                        _vector = Quaternion.LookRotation((hit.attachedRigidbody.transform.position - hit.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((a1.position - a0.position).normalized) * vector;
                         break;
                     case ApplyType.ThisToOther:
-                        _vector = Quaternion.LookRotation((hurt.transform.position - hit.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((b0.position - a0.position).normalized) * vector;
                         break;
                     case ApplyType.ThisToOtherRigidbody:
-                        _vector = Quaternion.LookRotation((hurt.attachedRigidbody.transform.position - hit.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((b1.position - a0.position).normalized) * vector;
                         break;
 
                     case ApplyType.ThisRigidbodyToThis:
-                        _vector = Quaternion.LookRotation((hit.transform.position - hit.attachedRigidbody.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((a0.position - a1.position).normalized) * vector;
                         break;
                     case ApplyType.ThisRigidbodyToOther:
-                        _vector = Quaternion.LookRotation((hurt.transform.position - hit.attachedRigidbody.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((b0.position - a1.position).normalized) * vector;
                         break;
                     case ApplyType.ThisRigidbodyToOtherRigidbody:
-                        _vector = Quaternion.LookRotation((hurt.attachedRigidbody.transform.position - hit.attachedRigidbody.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((b1.position - a1.position).normalized) * vector;
                         break;
 
                     case ApplyType.OtherToThis:
-                        _vector = Quaternion.LookRotation((hit.transform.position - hurt.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((a0.position - b0.position).normalized) * vector;
                         break;
                     case ApplyType.OtherToThisRigidbody:
-                        _vector = Quaternion.LookRotation((hit.attachedRigidbody.transform.position - hurt.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((a1.position - b0.position).normalized) * vector;
                         break;
                     case ApplyType.OtherToOtherRigidbody:
-                        _vector = Quaternion.LookRotation((hurt.attachedRigidbody.transform.position - hurt.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((b1.position - b0.position).normalized) * vector;
                         break;
 
                     case ApplyType.OtherRigidbodyToThis:
-                        _vector = Quaternion.LookRotation((hit.transform.position - hurt.attachedRigidbody.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((a0.position - b1.position).normalized) * vector;
                         break;
                     case ApplyType.OtherRigidbodyToThisRigidbody:
-                        _vector = Quaternion.LookRotation((hit.attachedRigidbody.transform.position - hurt.attachedRigidbody.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((a1.position - b1.position).normalized) * vector;
                         break;
                     case ApplyType.OtherRigidbodyToOther:
-                        _vector = Quaternion.LookRotation((hurt.transform.position - hurt.attachedRigidbody.transform.position).normalized) * vector;
+                        _vector = Quaternion.LookRotation((b0.position - b1.position).normalized) * vector;
                         break;
                 }
 
@@ -124,17 +129,17 @@ public static class MathStuff
                         break;
 
                     case ApplyType.RelativeThis:
-                        _rotation = hit.transform.rotation.eulerAngles + vector;
+                        _rotation = a0.rotation.eulerAngles + vector;
                         break;
                     case ApplyType.RelativeThisRigidbody:
-                        _rotation = hit.attachedRigidbody.transform.rotation.eulerAngles + vector;
+                        _rotation = a1.rotation.eulerAngles + vector;
                         break;
 
                     case ApplyType.RelativeOther:
-                        _rotation = hurt.transform.rotation.eulerAngles + vector;
+                        _rotation = b0.rotation.eulerAngles + vector;
                         break;
                     case ApplyType.RelativeOtherRigidbody:
-                        _rotation = hurt.attachedRigidbody.transform.rotation.eulerAngles + vector;
+                        _rotation = b1.rotation.eulerAngles + vector;
                         break;
                 }
 

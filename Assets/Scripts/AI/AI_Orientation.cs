@@ -15,7 +15,7 @@ public class AI_Orientation : MonoBehaviour
         void Do(AI_Orientation orientation);
     }
 
-    public Transform root;
+    public Quaternion desiredRotation;
 
     [System.Serializable]
     public class Default : ISubroutine
@@ -34,7 +34,7 @@ public class AI_Orientation : MonoBehaviour
 
         public void Do(AI_Orientation orientation)
         {
-            orientation.root.rotation = Quaternion.LookRotation(direction.normalized);
+            orientation.desiredRotation = Quaternion.LookRotation(direction.normalized);
         }
     }
     public FaceDirection faceDirection;
@@ -46,9 +46,9 @@ public class AI_Orientation : MonoBehaviour
 
         public void Do(AI_Orientation orientation)
         {
-            Vector3 navDirection = (orientation.activeTarget.position - orientation.root.position).normalized;
+            Vector3 navDirection = (orientation.activeTarget.position - orientation.transform.position).normalized;
 
-            orientation.root.rotation = Quaternion.LookRotation(navDirection);
+            orientation.desiredRotation = Quaternion.LookRotation(navDirection);
         }
     }
     public FaceTarget faceTarget;
