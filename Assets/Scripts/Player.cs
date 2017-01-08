@@ -124,8 +124,12 @@ public class Player : MovingObject
 		animator.SetBool ("Grounded", controller.Grounded);
 		animator.SetFloat ("MoveSpeed", controller.Velocity.magnitude);
 
-		//mouse wheel inputs
-		if (CrossPlatformInputManager.GetAxis ("Mouse ScrollWheel") < 0.0f)
+        //can't grab while grounded
+        if (controller.Grounded)
+            StopGrabbing();
+
+        //mouse wheel inputs
+        if (CrossPlatformInputManager.GetAxis ("Mouse ScrollWheel") < 0.0f)
         {
 			swiftChangeMoveSet = true;
 			activeMoveSet = moveSets [1];
