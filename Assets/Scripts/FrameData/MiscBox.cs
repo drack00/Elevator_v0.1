@@ -3,44 +3,31 @@ using System.Collections;
 
 public class MiscBox : ActiveFrameData
 {
-    public bool additive = true;
-    [EnumFlag("Blocking Mask")]
-    public MovingObject.BlockingMask blockingMask;
-
     public Behaviour enableBehaviour;
 	public Behaviour disableBehaviour;
 	public Behaviour updateBehaviour;
 
     public void OnEnable()
     {
+        if (collider == null ||
+            collider.attachedRigidbody == null)
+            return;
+
         enableBehaviour.Do(false, this);
-
-        if (additive && collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
-        {
-            MovingObject mo = collider.attachedRigidbody.gameObject.GetComponent<MovingObject>();
-
-            mo.blockingMask |= blockingMask;
-        }
     }
     public void OnDisable()
     {
-        if (additive && collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
-        {
-            MovingObject mo = collider.attachedRigidbody.gameObject.GetComponent<MovingObject>();
-
-            mo.blockingMask ^= blockingMask;
-        }
-
+        if (collider == null ||
+            collider.attachedRigidbody == null)
+            return;
+        
         disableBehaviour.Do(false, this);
     }
     public void Update ()
     {
-        if (!additive && collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
-        {
-            MovingObject mo = collider.attachedRigidbody.gameObject.GetComponent<MovingObject>();
-
-            mo.blockingMask = blockingMask;
-        }
+        if (collider == null ||
+            collider.attachedRigidbody == null)
+            return;
 
         updateBehaviour.Do(true, this);
     }

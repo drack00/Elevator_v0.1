@@ -5,6 +5,8 @@ using System;
 
 public class HitBox : ActiveFrameData
 {
+    public bool invertedGrab;
+    public LayerMask grabLayers;
     public LayerMask targetLayers;
     public bool continuous;
     public int maxHurts;
@@ -37,8 +39,10 @@ public class HitBox : ActiveFrameData
 	public ResponseBehaviour responseBehaviour;
 		
 	private List<HurtBox> hurts;
-	void Awake ()
+	public override void Awake ()
     {
+        base.Awake();
+
         hurts = new List<HurtBox> ();
 	}
 	void OnEnable ()
@@ -47,23 +51,20 @@ public class HitBox : ActiveFrameData
 	}
 	void OnDisable ()
     {
-        foreach(HurtBox hurt in hurts)
-        {
-            if (hurt != null &&
-                hurt != hurt.collider &&
-                hurt.collider.attachedRigidbody != null &&
-                hurt.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
-            {
-                if (hurt is GrabBox)
-                    (hurt as GrabBox).Release(this);
-            }
-        }
+        mo.StopGrabbing();
 
         hurts = new List<HurtBox> ();
     }
 		
 	void OnTriggerEnter (Collider other)
     {
+        if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & grabLayers) != 0)
+        {
+            mo.StartGrabbing(other.attachedRigidbody.GetComponent<MovingObject>(), invertedGrab);
+
+            return;
+        }
+
 		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || 
             other.GetComponent<HurtBox>() == null ||
             hurts.Contains(other.GetComponent<HurtBox>()))
@@ -117,9 +118,6 @@ public class HitBox : ActiveFrameData
 			return;
 
         HurtBox hurt = other.GetComponent<HurtBox>();
-
-        if (hurt is GrabBox)
-            (hurt as GrabBox).Release(this);
 
         TimeScaleManager.singleton.ResetTimeScale(other.gameObject);
 

@@ -21,11 +21,14 @@ public class MovingObject : MonoBehaviour
 		}
 	}
 
+    //blocking mask
     [System.Serializable]
     [System.Flags]
     public enum BlockingMask
     {
+        Physics = Rigidbody | Gravity,
         Rigidbody = 1,
+        Gravity = 2,
 
         LeftInputs = 16,
         RightInputs = 32,
@@ -36,10 +39,16 @@ public class MovingObject : MonoBehaviour
         AI_Orientation = 256,
         AI_Action = 512
     }
-
-    [HideInInspector]
     [EnumFlag("Blocking Mask")]
     public BlockingMask blockingMask;
+    public void AddBlockingMask(BlockingMask _blockingMask)
+    {
+        blockingMask |= _blockingMask;
+    }
+    public void RemoveBlockingMask(BlockingMask _blockingMask)
+    {
+        blockingMask ^= _blockingMask;
+    }
 
     //clash function
     public virtual void Clash ()
@@ -48,23 +57,50 @@ public class MovingObject : MonoBehaviour
     }
 
     //grab functions
-    public virtual void Grab()
+    public virtual Vector3 GetFocusDirection()
     {
+        return transform.forward;
+    }
+    public Vector3 grabOffset;
+    private bool isGrabbing = false;
+    public void StartGrabbing(MovingObject other, bool invertXOffset = false)
+    {
+        if (!isGrabbing)
+            StartCoroutine(Grab(other, invertXOffset));
+    }
+    public void StopGrabbing()
+    {
+        if (isGrabbing)
+            stopGrabbing = true;
+    }
+    private bool stopGrabbing = false;
+    public IEnumerator Grab(MovingObject other, bool invertXOffset = false)
+    {
+        isGrabbing = true;
+
         animator.SetBool("Grab", true);
-    }
-    public virtual void Release()
-    {
+        other.animator.SetBool("Grabbed", true);
+
+        stopGrabbing = false;
+        while (!stopGrabbing)
+        {
+            Vector3 position = (Quaternion.LookRotation(GetFocusDirection()) * grabOffset);
+            if (invertXOffset)
+                position = new Vector3(-1 * position.x, position.y, position.z);
+            position += transform.position;
+            other.rigidbody.MovePosition(position);
+
+            yield return null;
+        }
+        stopGrabbing = false;
+
         animator.SetBool("Grab", false);
-    }
-    public virtual void Grabbed ()
-    {
-        animator.SetBool("Grabbed", true);
-    }
-    public virtual void Released()
-    {
-        animator.SetBool("Grabbed", false);
+        other.animator.SetBool("Grabbed", false);
+
+        isGrabbing = false;
     }
 
+    //character stats
     private bool _alive;
 	public bool alive
     {
@@ -81,6 +117,8 @@ public class MovingObject : MonoBehaviour
 	}
     public virtual void Kill ()
     {
+        isGrabbing = false;
+        stopGrabbing = false;
         blockingMask = 0;
         ResetStun();
 
@@ -88,6 +126,8 @@ public class MovingObject : MonoBehaviour
     }
     public virtual void Dead ()
     {
+        isGrabbing = false;
+        stopGrabbing = false;
         blockingMask = 0;
         ResetStun();
 
@@ -164,6 +204,8 @@ public class MovingObject : MonoBehaviour
 
 	public virtual void Spawn ()
     {
+        isGrabbing = false;
+        stopGrabbing = false;
         blockingMask = 0;
         alive = true;
 		ResetHealth ();

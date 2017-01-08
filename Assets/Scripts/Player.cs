@@ -13,8 +13,13 @@ public class Player : MovingObject
 			return GetComponent<RigidbodyFirstPersonController> ();
 		}
 	}
-		
-	public Vector3[] moveSets;
+
+    public override Vector3 GetFocusDirection()
+    {
+        return controller.cam.transform.forward;
+    }
+
+    public Vector3[] moveSets;
 	private Vector3 _activeMoveSet;
 	public Vector3 activeMoveSet
     {

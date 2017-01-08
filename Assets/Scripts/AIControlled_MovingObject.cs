@@ -33,7 +33,7 @@ public class AIControlled_MovingObject : MovingObject
     {
         GroundCheck();
 
-        if (m_IsGrounded || airControl)
+        if ((blockingMask & BlockingMask.AI_Movement) == 0 && (m_IsGrounded || airControl))
         {
             ai.movement.agent.nextPosition = rigidbody.position;
 

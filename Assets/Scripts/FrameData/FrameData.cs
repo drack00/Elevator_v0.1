@@ -11,6 +11,10 @@ public class FrameData : MonoBehaviour
             return GetComponent<Collider>();
         }
     }
+    [HideInInspector]
+    public new Rigidbody rigidbody;
+    [HideInInspector]
+    public MovingObject mo;
 
     [System.Serializable]
     public class ApplyMovement
@@ -95,5 +99,11 @@ public class FrameData : MonoBehaviour
             force.Do(continuous, hit, _hurt);
             torque.Do(continuous, hit, _hurt, true);
         }
+    }
+
+    public virtual void Awake()
+    {
+        rigidbody = collider.attachedRigidbody;
+        mo = rigidbody.GetComponent<MovingObject>();
     }
 }
