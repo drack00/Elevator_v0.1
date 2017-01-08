@@ -49,24 +49,6 @@ public class HurtBox : FrameData
 	public Multiplier force;
     public Multiplier torque;
 
-    public virtual bool Clash (HitBox hit, bool continuous)
-    {
-        if (hit.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>() != null)
-        {
-            if (willClash && continuous == continuousClash)
-            {
-                hit.collider.attachedRigidbody.gameObject.GetComponent<MovingObject>().Clash();
-                return overrideHit;
-            }
-        }
-
-        return false;
-    }
-
-    public bool willClash;
-    public bool continuousClash;
-    public bool overrideHit;
-
 	public void Start ()
     {
         force.Reset ();

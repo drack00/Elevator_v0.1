@@ -8,20 +8,13 @@ public class HitBox : ActiveFrameData
     public bool invertedGrab;
     public LayerMask grabLayers;
     public LayerMask targetLayers;
+    public LayerMask clashLayers;
     public bool continuous;
     public int maxHurts;
     public bool retainHurts;
 
     [System.Serializable]
-	public class HitBehaviour : Behaviour
-    {
-        public void Do(bool continuous, HitBox hit, HurtBox hurt)
-        {
-            if (hurt.Clash(hit, continuous)) return;
-
-            base.Do(continuous, hit, hurt);
-        }
-    }
+	public class HitBehaviour : Behaviour { }
 	public HitBehaviour hitBehaviour;
 
 	[System.Serializable]
@@ -37,8 +30,8 @@ public class HitBox : ActiveFrameData
         }
     }
 	public ResponseBehaviour responseBehaviour;
-		
-	private List<HurtBox> hurts;
+
+    private List<HurtBox> hurts;
 	public override void Awake ()
     {
         base.Awake();
@@ -58,6 +51,13 @@ public class HitBox : ActiveFrameData
 		
 	void OnTriggerEnter (Collider other)
     {
+        if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & clashLayers) != 0)
+        {
+            mo.Clash();
+
+            return;
+        }
+
         if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & grabLayers) != 0)
         {
             mo.StartGrabbing(other.attachedRigidbody.GetComponent<MovingObject>(), invertedGrab);
@@ -86,7 +86,14 @@ public class HitBox : ActiveFrameData
 
 	void OnTriggerStay (Collider other)
     {
-		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || 
+        if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & clashLayers) != 0)
+        {
+            mo.Clash();
+
+            return;
+        }
+
+        if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || 
             other.GetComponent<HurtBox>() == null || 
             !hurts.Contains(other.GetComponent<HurtBox>()))
 			return;
