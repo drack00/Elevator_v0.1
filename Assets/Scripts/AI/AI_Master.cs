@@ -65,7 +65,7 @@ public class AI_Master : MonoBehaviour
                     {
                         if (findTargetByLayerMask)
                         {
-                            if ((go.layer & targetsLayerMask) != 0)
+                            if ((LayerMask.GetMask(LayerMask.LayerToName(go.layer)) & targetsLayerMask) != 0)
                                 _targets.Add(go);
                         }
                         else if (go.tag == targetsTag)
@@ -119,49 +119,72 @@ public class AI_Master : MonoBehaviour
                 }
             }
 
-            public bool requireGroupApproval;
-            public string groupTag;
-            public LayerMask groupLayerMask;
-
             public bool belowHealthThreshold;
             public float healthThreshold;
             public bool belowStunThreshold;
             public float stunThreshold;
 
+            public bool requireGroupApproval;
+            public string groupTag;
+            public LayerMask groupLayerMask;
+
             private float _warmup;
             public float warmup;
+            private float _offDelay;
+            public float offDelay;
             private float _cooldown;
             public float cooldown;
-            private float _delay;
-            public float delay;
 
             public bool Check(AI_Master master)
             {
                 MovingObject mo = master.movingObject;
 
+                //stat check
                 bool _check = haveTarget &&
                     belowHealthThreshold == (mo.health < healthThreshold) &&
                     belowStunThreshold == (mo.stun < stunThreshold);
 
-                if (_check && requireGroupApproval)
+                //group approval
+                if (requireGroupApproval)
                 {
-                    if (!string.IsNullOrEmpty(groupTag))
+                    if (_check)
                     {
-                        if (groupLayerMask != 0)
-                            _check = AIGroup.GetApproval(mo, groupTag, groupLayerMask);
+                        if (!string.IsNullOrEmpty(groupTag))
+                        {
+                            if (groupLayerMask != 0)
+                                _check = AIGroup.GetApproval(mo, groupTag, groupLayerMask);
+                            else
+                                _check = AIGroup.GetApproval(mo, groupTag);
+                        }
                         else
-                            _check = AIGroup.GetApproval(mo, groupTag);
+                        {
+                            if (groupLayerMask != 0)
+                                _check = AIGroup.GetApproval(mo, groupLayerMask);
+                            else
+                                _check = AIGroup.GetApproval(mo);
+                        }
                     }
                     else
                     {
-                        if (groupLayerMask != 0)
-                            _check = AIGroup.GetApproval(mo, groupLayerMask);
+                        if (!string.IsNullOrEmpty(groupTag))
+                        {
+                            if (groupLayerMask != 0)
+                                AIGroup.RemoveApproval(mo, groupTag, groupLayerMask);
+                            else
+                                AIGroup.RemoveApproval(mo, groupTag);
+                        }
                         else
-                            _check = AIGroup.GetApproval(mo);
+                        {
+                            if (groupLayerMask != 0)
+                                AIGroup.RemoveApproval(mo, groupLayerMask);
+                            else
+                                AIGroup.RemoveApproval(mo);
+                        }
                     }
                 }
 
-                if (_check)
+                //warmup frames
+                if (_check && Mathf.Approximately(_cooldown, Mathf.Epsilon))
                 {
                     _warmup += Time.deltaTime;
                     if (_warmup > warmup)
@@ -170,53 +193,33 @@ public class AI_Master : MonoBehaviour
                 else
                 {
                     _warmup = 0.0f;
-
-                    if (_cooldown > 0.0f)
-                    {
-                        _cooldown -= Time.deltaTime;
-                        if (_cooldown < 0.0f)
-                            _cooldown = 0.0f;
-
-                        _check = true;
-                    }
                 }
-
                 _check = _check && Mathf.Approximately(_warmup, warmup);
 
-                if (_check && Mathf.Approximately(_cooldown, Mathf.Epsilon))
-                    _cooldown = cooldown;
-
+                //off delay frames
                 if (_check)
                 {
-                    if (Mathf.Approximately(_delay, Mathf.Epsilon))
-                        _delay = delay;
-                    else
-                    {
-                        _check = false;
-
-                        _delay -= Time.deltaTime;
-                        if (_delay < 0.0f)
-                            _delay = 0.0f;
-                    }
+                    if (Mathf.Approximately(_offDelay, Mathf.Epsilon))
+                        _offDelay = offDelay;
                 }
-
-                if (!_check)
+                else
                 {
-                    if (!string.IsNullOrEmpty(groupTag))
-                    {
-                        if (groupLayerMask != 0)
-                            AIGroup.RemoveApproval(mo, groupTag, groupLayerMask);
-                        else
-                            AIGroup.RemoveApproval(mo, groupTag);
-                    }
-                    else
-                    {
-                        if (groupLayerMask != 0)
-                            AIGroup.RemoveApproval(mo, groupLayerMask);
-                        else
-                            AIGroup.RemoveApproval(mo);
-                    }
+                    _offDelay -= Time.deltaTime;
+                    if (_offDelay < 0.0f)
+                        _offDelay = 0.0f;
                 }
+                _check = _check || !Mathf.Approximately(_offDelay, Mathf.Epsilon);
+
+                //cooldown frames
+                if (_cooldown > 0.0f)
+                {
+                    _cooldown -= Time.deltaTime;
+                    if (_cooldown < 0.0f)
+                        _cooldown = 0.0f;
+                }
+                _check = _check && Mathf.Approximately(_cooldown, Mathf.Epsilon);
+                if (_check)
+                    _cooldown = cooldown;
 
                 return _check;
             }
@@ -227,7 +230,7 @@ public class AI_Master : MonoBehaviour
 
     public void Update()
     {
-        //assign profiles to slave AIs if conditions are met, if profile is masked pass to next highest priority profile, break when all slave profiles are set
+        //assign profiles to slave AIs if conditions are met, if profile is masked pass to next highest priority profile, break when all slave profiles are set, reset AIs if a relevent profile cannot be found
         bool movementMasked = true;
         bool orientationMasked = true;
         bool actionMasked = true;
@@ -257,6 +260,16 @@ public class AI_Master : MonoBehaviour
 
             if (!movementMasked && !orientationMasked && !actionMasked)
                 break;
+
+            if(i == profiles.Length - 1)
+            {
+                if (movementMasked)
+                    movement.Reset();
+                if (orientationMasked)
+                    orientation.Reset();
+                if (actionMasked)
+                    action.Reset();
+            }
         }
     }
 }

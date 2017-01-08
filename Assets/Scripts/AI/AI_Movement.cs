@@ -348,25 +348,29 @@ public class AI_Movement : MonoBehaviour
     public Subroutine selectedSubroutine;
     [HideInInspector]
     public Transform activeTarget;
+    public void Reset()
+    {
+        selectedSubroutine = Subroutine.None;
+        activeTarget = null;
+    }
 
     public void Awake()
     {
-        selectedSubroutine = Subroutine.None;
+        Reset();
     }
     public void Update()
     {
-        ISubroutine activeSubroutine = defaultSubroutine;
-
         switch (selectedSubroutine)
         {
             case Subroutine.HaveTarget:
-                activeSubroutine = haveTargetSubroutine;
+                haveTargetSubroutine.Do(this);
                 break;
             case Subroutine.Targeted:
-                activeSubroutine = targetedSubroutine;
+                targetedSubroutine.Do(this);
+                break;
+            default:
+                defaultSubroutine.Do(this);
                 break;
         }
-
-        activeSubroutine.Do(this);
     }
 }

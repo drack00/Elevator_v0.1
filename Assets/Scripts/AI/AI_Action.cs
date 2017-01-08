@@ -7,7 +7,7 @@ public class AI_Action : MonoBehaviour
     [System.Serializable]
     public enum Subroutine
     {
-        Masked, None, Attack
+        Masked, None, Attack, Dodge
     }
 
     public interface ISubroutine
@@ -43,27 +43,44 @@ public class AI_Action : MonoBehaviour
     }
     public Attack attackSubroutine;
 
+    [System.Serializable]
+    public class Dodge : ISubroutine
+    {
+        public void Do(AI_Action action)
+        {
+            action.animator.SetTrigger("Dodge");
+        }
+    }
+    public Dodge dodgeSubroutine;
+
     [HideInInspector]
     public Subroutine selectedSubroutine;
     [HideInInspector]
     public Transform activeTarget;
+    public void Reset()
+    {
+        selectedSubroutine = Subroutine.None;
+        activeTarget = null;
+    }
 
     public void Awake()
     {
-        selectedSubroutine = Subroutine.None;
+        Reset();
     }
 
     public void Update()
     {
-        ISubroutine activeSubroutine = defaultSubroutine;
-
         switch (selectedSubroutine)
         {
             case Subroutine.Attack:
-                activeSubroutine = attackSubroutine;
+                attackSubroutine.Do(this);
+                break;
+            case Subroutine.Dodge:
+                dodgeSubroutine.Do(this);
+                break;
+            default:
+                defaultSubroutine.Do(this);
                 break;
         }
-
-        activeSubroutine.Do(this);
     }
 }

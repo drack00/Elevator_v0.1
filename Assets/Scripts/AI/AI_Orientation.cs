@@ -57,26 +57,30 @@ public class AI_Orientation : MonoBehaviour
     public Subroutine selectedSubroutine;
     [HideInInspector]
     public Transform activeTarget;
+    public void Reset()
+    {
+        selectedSubroutine = Subroutine.None;
+        activeTarget = null;
+    }
 
     public void Awake()
     {
-        selectedSubroutine = Subroutine.None;
+        Reset();
     }
 
     public void Update()
     {
-        ISubroutine activeSubroutine = defaultSubroutine;
-
         switch (selectedSubroutine)
         {
             case Subroutine.FaceDirection:
-                activeSubroutine = faceDirection;
+                faceDirection.Do(this);
                 break;
             case Subroutine.FaceTarget:
-                activeSubroutine = faceTarget;
+                faceTarget.Do(this);
+                break;
+            default:
+                defaultSubroutine.Do(this);
                 break;
         }
-
-        activeSubroutine.Do(this);
     }
 }
