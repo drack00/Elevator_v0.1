@@ -14,6 +14,7 @@ public class AIControlled_MovingObject : MovingObject
     }
 
     public bool airControl;
+    public bool restrictRotation;
     public Transform root;
 
     public virtual void Awake ()
@@ -36,7 +37,10 @@ public class AIControlled_MovingObject : MovingObject
 
         if ((blockingMask & BlockingMask.AI_Orientation) == 0 && (m_IsGrounded || airControl))
         {
-            root.rotation = ai.orientation.desiredRotation;
+            Quaternion rotation = ai.orientation.desiredRotation;
+            if (restrictRotation)
+                rotation = Quaternion.Euler(0.0f, rotation.eulerAngles.y, 0.0f);
+            root.rotation = rotation;
         }
 
         animator.SetBool("Grounded", m_IsGrounded);
