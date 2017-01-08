@@ -331,13 +331,13 @@ public class AI_Movement : MonoBehaviour
     }
     public Targeted targetedSubroutine;
 
-    public float stickToMeshDistance;
+    public bool stickToMesh;
     public void SetDestination (Vector3 destination)
     {
-        if (stickToMeshDistance > 0.0f)
+        if (stickToMesh)
         {
             NavMeshHit hit;
-            if (NavMesh.SamplePosition(destination, out hit, stickToMeshDistance, agent.areaMask))
+            if (NavMesh.SamplePosition(destination, out hit, agent.height, agent.areaMask))
                 agent.SetDestination(hit.position);
         }
         else

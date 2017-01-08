@@ -39,6 +39,7 @@ public class MovingObject : MonoBehaviour
         AI_Orientation = 256,
         AI_Action = 512
     }
+    [HideInInspector]
     [EnumFlag("Blocking Mask")]
     public BlockingMask blockingMask;
     public void AddBlockingMask(BlockingMask _blockingMask)
