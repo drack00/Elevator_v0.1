@@ -42,41 +42,10 @@ public class Player : MovingObject
 				animator.SetInteger ("ActiveMoveSet", 1);
 		}
 	}
-	private Vector3 inactiveMoveSet
-    {
-		get
-        {
-			if (activeMoveSet == moveSets [0])
-				return moveSets [1];
-			else
-				return moveSets [0];
-		}
-	}
+    public SyncPosition[] syncPositions;
 
 	public float swiftChangeMoveSetSpeed;
 	private bool swiftChangeMoveSet;
-
-	public GameObject[] moveSetsContent;
-	private GameObject activeMoveSetContent
-    {
-		get
-        {
-			if (activeMoveSet == moveSets [0])
-				return moveSetsContent [0];
-			else
-				return moveSetsContent [1];
-		}
-	}
-	private GameObject inactiveMoveSetContent
-    {
-		get
-        {
-			if (inactiveMoveSet == moveSets [0])
-				return moveSetsContent [0];
-			else
-				return moveSetsContent [1];
-		}
-	}
 
 	public override void Start ()
     {
@@ -112,13 +81,10 @@ public class Player : MovingObject
 			activeMoveSet = activeMoveSet;
 
 		//align ui gizmos
-		if (activeMoveSetContent != moveSetsContent [1] || !controller.Grounded)
-        {
-			activeMoveSetContent.transform.localRotation = controller.cam.transform.localRotation;
-			inactiveMoveSetContent.transform.localRotation = Quaternion.Euler (inactiveMoveSet);
-		}
-        else
-			moveSetsContent [1].transform.localRotation = Quaternion.Euler (moveSets [1]);
+        foreach(SyncPosition syncPos in syncPositions)
+            {
+                syncPos.enabled = activeMoveSet == moveSets[1] && !controller.Grounded;
+            }
 
 		//controller animation
 		animator.SetBool ("Grounded", controller.Grounded);
