@@ -72,7 +72,7 @@ public class HitBox : ActiveFrameData
 
         HurtBox hurt = other.GetComponent<HurtBox>();
 		
-		if (hurts.Count < maxHurts)
+		if (hurts.Count < maxHurts || maxHurts == -1)
         {
             hurts.Add (hurt);
 
