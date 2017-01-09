@@ -23,7 +23,7 @@ public class FrameData : MonoBehaviour
         public MathStuff.SortVectors.ApplyType type;
         public Vector3 amount;
 
-        public void Do(bool continuous, FrameData hit, FrameData hurt = null, bool isTorque = false)
+        public void Do(bool continuous, FrameData hit, FrameData hurt = null, MathStuff.SortVectors.VectorType isTorque = MathStuff.SortVectors.VectorType.Force)
         {
             float multiplier = !continuous ? 1.0f : Time.deltaTime;
 
@@ -35,7 +35,7 @@ public class FrameData : MonoBehaviour
             {
                 HurtBox _hurt = hurt as HurtBox;
 
-                if (!isTorque)
+                if (isTorque == MathStuff.SortVectors.VectorType.Force)
                     multiplier = _hurt.force.GetAngle(multiplier);
                 else
                     multiplier = _hurt.torque.GetAngle(multiplier);
@@ -43,7 +43,7 @@ public class FrameData : MonoBehaviour
 
             Vector3 vector = MathStuff.SortVectors.GetCorrectVector(type, amount, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, isTorque) * multiplier;
 
-            if (!isTorque)
+            if (isTorque == MathStuff.SortVectors.VectorType.Force)
             {   
                 if (additive)
                     hurt.rigidbody.AddForce(vector, ForceMode.VelocityChange);
@@ -90,14 +90,16 @@ public class FrameData : MonoBehaviour
 
         public void Do(bool continuous, FrameData hit, FrameData hurt = null)
         {
-            Vector3 pos = MathStuff.SortVectors.GetCorrectVector(positionType, position, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform);
-            Vector3 rot = MathStuff.SortVectors.GetCorrectVector(rotationType, rotation, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, true);
+            Vector3 pos = MathStuff.SortVectors.GetCorrectVector(positionType, position, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, MathStuff.SortVectors.VectorType.Position);
+            Vector3 rot = MathStuff.SortVectors.GetCorrectVector(rotationType, rotation, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, MathStuff.SortVectors.VectorType.Rotation);
 
             GameObject go = Instantiate(spawnPrefab, pos, Quaternion.Euler(rot)) as GameObject;
+            HitBox _hit = go.GetComponent<HitBox>();
+            _hit.exclude.Add(hit.mo);
             HurtBox _hurt = go.GetComponent<HurtBox>();
 
             force.Do(continuous, hit, _hurt);
-            torque.Do(continuous, hit, _hurt, true);
+            torque.Do(continuous, hit, _hurt, MathStuff.SortVectors.VectorType.Torque);
         }
     }
 

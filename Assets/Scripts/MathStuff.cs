@@ -39,7 +39,12 @@ public static class MathStuff
             OtherRigidbodyToOther,
             OtherRigidbodyToThisRigidbody
         }
-        public static Vector3 GetCorrectVector(ApplyType applyType, Vector3 vector, Transform a0, Transform a1 = null, Transform b0 = null, Transform b1 = null, bool useRotation = false)
+        [System.Serializable]
+        public enum VectorType
+        {
+            Force, Torque, Position, Rotation
+        }
+        public static Vector3 GetCorrectVector(ApplyType applyType, Vector3 vector, Transform a0, Transform a1 = null, Transform b0 = null, Transform b1 = null, VectorType vectorType = VectorType.Force)
         {
             if (a1 == null)
                 a1 = a0;
@@ -49,73 +54,128 @@ public static class MathStuff
             if (b1 == null)
                 b1 = b0;
 
-            if (!useRotation)
+            if (vectorType == VectorType.Force)
             {
-                Vector3 _vector = Vector3.zero;
+                Vector3 _force = Vector3.zero;
 
                 switch (applyType)
                 {
 
                     case ApplyType.Absolute:
-                        _vector = vector;
+                        _force = vector;
                         break;
 
                     case ApplyType.RelativeThis:
-                        _vector = a0.TransformDirection(vector);
+                        _force = a0.TransformDirection(vector);
                         break;
                     case ApplyType.RelativeThisRigidbody:
-                        _vector = a1.TransformDirection(vector);
+                        _force = a1.TransformDirection(vector);
                         break;
                     case ApplyType.RelativeOther:
-                        _vector = b0.TransformDirection(vector);
+                        _force = b0.TransformDirection(vector);
                         break;
                     case ApplyType.RelativeOtherRigidbody:
-                        _vector = b1.TransformDirection(vector);
+                        _force = b1.TransformDirection(vector);
                         break;
 
                     case ApplyType.ThisToThisRigidbody:
-                        _vector = Quaternion.LookRotation((a1.position - a0.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((a1.position - a0.position).normalized) * vector;
                         break;
                     case ApplyType.ThisToOther:
-                        _vector = Quaternion.LookRotation((b0.position - a0.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((b0.position - a0.position).normalized) * vector;
                         break;
                     case ApplyType.ThisToOtherRigidbody:
-                        _vector = Quaternion.LookRotation((b1.position - a0.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((b1.position - a0.position).normalized) * vector;
                         break;
 
                     case ApplyType.ThisRigidbodyToThis:
-                        _vector = Quaternion.LookRotation((a0.position - a1.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((a0.position - a1.position).normalized) * vector;
                         break;
                     case ApplyType.ThisRigidbodyToOther:
-                        _vector = Quaternion.LookRotation((b0.position - a1.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((b0.position - a1.position).normalized) * vector;
                         break;
                     case ApplyType.ThisRigidbodyToOtherRigidbody:
-                        _vector = Quaternion.LookRotation((b1.position - a1.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((b1.position - a1.position).normalized) * vector;
                         break;
 
                     case ApplyType.OtherToThis:
-                        _vector = Quaternion.LookRotation((a0.position - b0.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((a0.position - b0.position).normalized) * vector;
                         break;
                     case ApplyType.OtherToThisRigidbody:
-                        _vector = Quaternion.LookRotation((a1.position - b0.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((a1.position - b0.position).normalized) * vector;
                         break;
                     case ApplyType.OtherToOtherRigidbody:
-                        _vector = Quaternion.LookRotation((b1.position - b0.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((b1.position - b0.position).normalized) * vector;
                         break;
 
                     case ApplyType.OtherRigidbodyToThis:
-                        _vector = Quaternion.LookRotation((a0.position - b1.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((a0.position - b1.position).normalized) * vector;
                         break;
                     case ApplyType.OtherRigidbodyToThisRigidbody:
-                        _vector = Quaternion.LookRotation((a1.position - b1.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((a1.position - b1.position).normalized) * vector;
                         break;
                     case ApplyType.OtherRigidbodyToOther:
-                        _vector = Quaternion.LookRotation((b0.position - b1.position).normalized) * vector;
+                        _force = Quaternion.LookRotation((b0.position - b1.position).normalized) * vector;
                         break;
                 }
 
-                return _vector;
+                return _force;
 
+            }
+            else if(vectorType == VectorType.Torque)
+            {
+                Vector3 _torque = Vector3.zero;
+
+                switch (applyType)
+                {
+
+                    case ApplyType.Absolute:
+                        _torque = vector;
+                        break;
+
+                    case ApplyType.RelativeThis:
+                        _torque = a0.rotation.eulerAngles + vector;
+                        break;
+                    case ApplyType.RelativeThisRigidbody:
+                        _torque = a1.rotation.eulerAngles + vector;
+                        break;
+
+                    case ApplyType.RelativeOther:
+                        _torque = b0.rotation.eulerAngles + vector;
+                        break;
+                    case ApplyType.RelativeOtherRigidbody:
+                        _torque = b1.rotation.eulerAngles + vector;
+                        break;
+                }
+
+                return _torque;
+            }
+            else if(vectorType == VectorType.Position)
+            {
+                Vector3 _position = Vector3.zero;
+
+                switch (applyType)
+                {
+                    case ApplyType.Absolute:
+                        _position = vector;
+                        break;
+
+                    case ApplyType.RelativeThis:
+                        _position = a0.position + vector;
+                        break;
+                    case ApplyType.RelativeThisRigidbody:
+                        _position = a1.position + vector;
+                        break;
+
+                    case ApplyType.RelativeOther:
+                        _position = b0.position + vector;
+                        break;
+                    case ApplyType.RelativeOtherRigidbody:
+                        _position = b1.position + vector;
+                        break;
+                }
+
+                return _position;
             }
             else
             {
@@ -123,7 +183,6 @@ public static class MathStuff
 
                 switch (applyType)
                 {
-
                     case ApplyType.Absolute:
                         _rotation = vector;
                         break;

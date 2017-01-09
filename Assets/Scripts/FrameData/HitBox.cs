@@ -33,21 +33,26 @@ public class HitBox : ActiveFrameData
 	public ResponseBehaviour responseBehaviour;
 
     private List<HurtBox> hurts;
-	public override void Awake ()
+    [HideInInspector]
+    public List<MovingObject> exclude;
+    public override void Awake ()
     {
         base.Awake();
 
         hurts = new List<HurtBox> ();
+        exclude = new List<MovingObject>();
 	}
 	void OnEnable ()
     {
         hurts = new List<HurtBox> ();
-	}
+        exclude = new List<MovingObject>();
+    }
 	void OnDisable ()
     {
         mo.StopGrabbing();
 
         hurts = new List<HurtBox> ();
+        exclude = new List<MovingObject>();
     }
 		
 	void OnTriggerEnter (Collider other)
@@ -66,10 +71,11 @@ public class HitBox : ActiveFrameData
             return;
         }
 
-		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || 
+        if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 ||
             other.GetComponent<HurtBox>() == null ||
-            hurts.Contains(other.GetComponent<HurtBox>()))
-			return;
+            hurts.Contains(other.GetComponent<HurtBox>()) ||
+            exclude.Contains(other.GetComponent<HurtBox>().mo))
+            return;
 
         HurtBox hurt = other.GetComponent<HurtBox>();
 		
@@ -96,7 +102,8 @@ public class HitBox : ActiveFrameData
 
         if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || 
             other.GetComponent<HurtBox>() == null || 
-            !hurts.Contains(other.GetComponent<HurtBox>()))
+            !hurts.Contains(other.GetComponent<HurtBox>()) ||
+            exclude.Contains(other.GetComponent<HurtBox>().mo))
 			return;
 
         HurtBox hurt = other.GetComponent<HurtBox>();
@@ -122,7 +129,8 @@ public class HitBox : ActiveFrameData
     {
 		if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & targetLayers) == 0 || 
             other.GetComponent<HurtBox>() == null || 
-            !hurts.Contains(other.GetComponent<HurtBox>()))
+            !hurts.Contains(other.GetComponent<HurtBox>()) ||
+            exclude.Contains(other.GetComponent<HurtBox>().mo))
 			return;
 
         HurtBox hurt = other.GetComponent<HurtBox>();
