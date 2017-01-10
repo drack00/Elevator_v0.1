@@ -88,7 +88,9 @@ public class Player : MovingObject
 
 		//controller animation
 		animator.SetBool ("Grounded", controller.Grounded);
-		animator.SetFloat ("MoveSpeed", controller.Velocity.magnitude);
+        Vector3 velocity = controller.Velocity;
+        velocity = new Vector3(velocity.x, 0.0f, velocity.z);
+        animator.SetFloat ("MoveSpeed", velocity.magnitude);
 
         //can't grab while grounded
         if (controller.Grounded)

@@ -450,25 +450,100 @@ public static class SortVectors
             switch (applyType)
             {
                 case ApplyType.Absolute:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
 
 
                 case ApplyType.A0:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = a0.rotation.eulerAngles + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
                 case ApplyType.A1:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = a1.rotation.eulerAngles + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
                 case ApplyType.B0:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = b0.rotation.eulerAngles + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
                 case ApplyType.B1:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = b1.rotation.eulerAngles + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
             }
         }
@@ -477,25 +552,100 @@ public static class SortVectors
             switch (applyType)
             {
                 case ApplyType.Absolute:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
 
 
                 case ApplyType.A0:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = a0.position + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
                 case ApplyType.A1:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = a1.position + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
                 case ApplyType.B0:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = b0.position + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
                 case ApplyType.B1:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = b1.position + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
             }
         }
@@ -504,25 +654,100 @@ public static class SortVectors
             switch (applyType)
             {
                 case ApplyType.Absolute:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
 
 
                 case ApplyType.A0:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = a0.rotation.eulerAngles + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
                 case ApplyType.A1:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = a1.rotation.eulerAngles + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
                 case ApplyType.B0:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = b0.rotation.eulerAngles + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
 
                 case ApplyType.B1:
+                    if (flatten.x == FlattenType.FlattenBefore)
+                        vector = new Vector3(0.0f, vector.y, vector.z);
+                    if (flatten.y == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, 0.0f, vector.z);
+                    if (flatten.z == FlattenType.FlattenBefore)
+                        vector = new Vector3(vector.x, vector.y, 0.0f);
+
                     _vector = b1.rotation.eulerAngles + vector;
+
+                    if (flatten.x == FlattenType.FlattenAfter)
+                        _vector = new Vector3(0.0f, _vector.y, _vector.z);
+                    if (flatten.y == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, 0.0f, _vector.z);
+                    if (flatten.z == FlattenType.FlattenAfter)
+                        _vector = new Vector3(_vector.x, _vector.y, 0.0f);
+
                     break;
             }
         }

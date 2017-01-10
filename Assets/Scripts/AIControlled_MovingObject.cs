@@ -44,7 +44,9 @@ public class AIControlled_MovingObject : MovingObject
         }
 
         animator.SetBool("Grounded", m_IsGrounded);
-        animator.SetFloat("MoveSpeed", rigidbody.velocity.magnitude);
+        Vector3 velocity = rigidbody.velocity;
+        velocity = new Vector3(velocity.x, 0.0f, velocity.z);
+        animator.SetFloat("MoveSpeed", velocity.magnitude);
 
         if (m_IsGrounded)
             StopGrabbing();
