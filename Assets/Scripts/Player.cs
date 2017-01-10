@@ -82,9 +82,9 @@ public class Player : MovingObject
 
 		//align ui gizmos
         foreach(SyncPosition syncPos in syncPositions)
-            {
-                syncPos.enabled = activeMoveSet == moveSets[1] && !controller.Grounded;
-            }
+        {
+            syncPos.enabled = activeMoveSet == moveSets[1] && !controller.Grounded;
+        }
 
 		//controller animation
 		animator.SetBool ("Grounded", controller.Grounded);
@@ -112,10 +112,20 @@ public class Player : MovingObject
 		animator.SetBool ("Left", CrossPlatformInputManager.GetButton ("Fire1"));
 		animator.SetBool ("Right", CrossPlatformInputManager.GetButton ("Fire2"));
 
-		//mouse button edges
-		if ((blockingMask & BlockingMask.LeftInputs) == 0 && CrossPlatformInputManager.GetButtonDown ("Fire1"))
-			animator.SetTrigger ("LeftEdge");
-		if ((blockingMask & BlockingMask.RightInputs) == 0 && CrossPlatformInputManager.GetButtonDown ("Fire2"))
-			animator.SetTrigger ("RightEdge");
+        //mouse button edges
+        if ((blockingMask & BlockingMask.LeftInputs) == 0)
+        {
+            if (CrossPlatformInputManager.GetButtonDown("Fire1"))
+                animator.SetTrigger("LeftEdge");
+        }
+        else
+            animator.SetBool("Left", false);
+        if ((blockingMask & BlockingMask.RightInputs) == 0)
+        {
+            if (CrossPlatformInputManager.GetButtonDown("Fire2"))
+                animator.SetTrigger("RightEdge");
+        }
+        else
+            animator.SetBool("Right", false);
 	}
 }

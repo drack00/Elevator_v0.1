@@ -30,6 +30,7 @@ public class MovingObject : MonoBehaviour
         Rigidbody = 1,
         Gravity = 2,
 
+        Input = LeftInputs | RightInputs | Controller,
         LeftInputs = 16,
         RightInputs = 32,
         Controller = 64,
