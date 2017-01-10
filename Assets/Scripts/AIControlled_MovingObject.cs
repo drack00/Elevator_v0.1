@@ -48,6 +48,9 @@ public class AIControlled_MovingObject : MovingObject
 
         if (m_IsGrounded)
             StopGrabbing();
+
+        if ((blockingMask & BlockingMask.AI_Action) == 0 && !string.IsNullOrEmpty(ai.action.action))
+            animator.SetTrigger(ai.action.action);
     }
 
     public virtual void FixedUpdate()

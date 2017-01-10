@@ -20,10 +20,11 @@ public class FrameData : MonoBehaviour
     public class ApplyMovement
     {
         public bool additive = true;
-        public MathStuff.SortVectors.ApplyType type;
+        public SortVectors.ApplyType type;
+        public SortVectors.Flatten flatten;
         public Vector3 amount;
 
-        public void Do(bool continuous, FrameData hit, FrameData hurt = null, MathStuff.SortVectors.VectorType isTorque = MathStuff.SortVectors.VectorType.Force)
+        public void Do(bool continuous, FrameData hit, FrameData hurt = null, SortVectors.VectorType isTorque = SortVectors.VectorType.Force)
         {
             float multiplier = !continuous ? 1.0f : Time.deltaTime;
 
@@ -35,15 +36,17 @@ public class FrameData : MonoBehaviour
             {
                 HurtBox _hurt = hurt as HurtBox;
 
-                if (isTorque == MathStuff.SortVectors.VectorType.Force)
+                if (isTorque == SortVectors.VectorType.Force)
                     multiplier = _hurt.force.GetAngle(multiplier);
                 else
                     multiplier = _hurt.torque.GetAngle(multiplier);
             }
 
-            Vector3 vector = MathStuff.SortVectors.GetCorrectVector(type, amount, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, isTorque) * multiplier;
+            Vector3 vector = SortVectors.GetCorrectVector(type, flatten, amount,
+                hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, 
+                isTorque) * multiplier;
 
-            if (isTorque == MathStuff.SortVectors.VectorType.Force)
+            if (isTorque == SortVectors.VectorType.Force)
             {   
                 if (additive)
                     hurt.rigidbody.AddForce(vector, ForceMode.VelocityChange);
@@ -79,10 +82,12 @@ public class FrameData : MonoBehaviour
     {
         public GameObject spawnPrefab;
 
-        public MathStuff.SortVectors.ApplyType positionType;
+        public SortVectors.ApplyType positionType;
+        public SortVectors.Flatten positionFlatten;
         public Vector3 position;
 
-        public MathStuff.SortVectors.ApplyType rotationType;
+        public SortVectors.ApplyType rotationType;
+        public SortVectors.Flatten rotationFlatten;
         public Vector3 rotation;
 
         public ApplyMovement force;
@@ -90,8 +95,12 @@ public class FrameData : MonoBehaviour
 
         public void Do(bool continuous, FrameData hit, FrameData hurt = null)
         {
-            Vector3 pos = MathStuff.SortVectors.GetCorrectVector(positionType, position, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, MathStuff.SortVectors.VectorType.Position);
-            Vector3 rot = MathStuff.SortVectors.GetCorrectVector(rotationType, rotation, hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, MathStuff.SortVectors.VectorType.Rotation);
+            Vector3 pos = SortVectors.GetCorrectVector(positionType, positionFlatten, position,
+                hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, 
+                SortVectors.VectorType.Position);
+            Vector3 rot = SortVectors.GetCorrectVector(rotationType, rotationFlatten, rotation, 
+                hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, 
+                SortVectors.VectorType.Rotation);
 
             GameObject go = Instantiate(spawnPrefab, pos, Quaternion.Euler(rot)) as GameObject;
             HitBox _hit = go.GetComponent<HitBox>();
@@ -99,7 +108,7 @@ public class FrameData : MonoBehaviour
             HurtBox _hurt = go.GetComponent<HurtBox>();
 
             force.Do(continuous, hit, _hurt);
-            torque.Do(continuous, hit, _hurt, MathStuff.SortVectors.VectorType.Torque);
+            torque.Do(continuous, hit, _hurt, SortVectors.VectorType.Torque);
         }
     }
 

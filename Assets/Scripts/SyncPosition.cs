@@ -17,7 +17,7 @@ public class SyncPosition : MonoBehaviour
 	void Update ()
     {
         transform.position = syncTransform.TransformPoint(syncPosition);
-        transform.rotation = Quaternion.LookRotation((Quaternion.Euler(syncRotation) * syncTransform.forward));
+        transform.eulerAngles = syncTransform.eulerAngles + syncRotation;
 	}
     void OnDisable()
     {

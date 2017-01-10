@@ -15,20 +15,14 @@ public class AI_Action : MonoBehaviour
         void Do(AI_Action action);
     }
 
-    public Animator animator
-    {
-        get
-        {
-            return GetComponent<Animator>();
-        }
-    }
+    public string action = null;
 
     [System.Serializable]
     public class Default : ISubroutine
     {
         public void Do (AI_Action action)
         {
-
+            action.action = null;
         }
     }
     public Default defaultSubroutine;
@@ -38,7 +32,7 @@ public class AI_Action : MonoBehaviour
     {
         public void Do(AI_Action action)
         {
-            action.animator.SetTrigger("Attack");
+            action.action = "Attack";
         }
     }
     public Attack attackSubroutine;
@@ -48,7 +42,7 @@ public class AI_Action : MonoBehaviour
     {
         public void Do(AI_Action action)
         {
-            action.animator.SetTrigger("Dodge");
+            action.action = "Dodge";
         }
     }
     public Dodge dodgeSubroutine;

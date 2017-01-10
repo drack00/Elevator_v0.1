@@ -25,7 +25,7 @@ public class ActiveFrameData : FrameData
             FrameData _hurt = !invert ? hurt : hit;
 
             force.Do(continuous, _hit, _hurt);
-            torque.Do(continuous, _hit, _hurt, MathStuff.SortVectors.VectorType.Torque);
+            torque.Do(continuous, _hit, _hurt, SortVectors.VectorType.Torque);
 
             _hit.mo.health = damage.Do(_hit.mo.health);
             _hit.mo.stun = stun.Do(_hit.mo.stun);
