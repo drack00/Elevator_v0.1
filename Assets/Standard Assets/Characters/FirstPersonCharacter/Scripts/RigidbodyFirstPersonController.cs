@@ -4,8 +4,6 @@ using UnityStandardAssets.CrossPlatformInput;
 
 namespace UnityStandardAssets.Characters.FirstPerson
 {
-    [RequireComponent(typeof (Rigidbody))]
-    [RequireComponent(typeof (CapsuleCollider))]
     public class RigidbodyFirstPersonController : MonoBehaviour
     {
         [Serializable]
@@ -81,8 +79,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         public AdvancedSettings advancedSettings = new AdvancedSettings();
 
 
-        private Rigidbody m_RigidBody;
-        private CapsuleCollider m_Capsule;
+        public Rigidbody m_RigidBody;
+        public CapsuleCollider m_Capsule;
         private float m_YRotation;
         private Vector3 m_GroundContactNormal;
         private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded;
@@ -118,8 +116,6 @@ namespace UnityStandardAssets.Characters.FirstPerson
 
         private void Start()
         {
-            m_RigidBody = GetComponent<Rigidbody>();
-            m_Capsule = GetComponent<CapsuleCollider>();
             mouseLook.Init (transform, cam.transform);
         }
 

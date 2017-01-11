@@ -3,22 +3,8 @@ using System.Collections;
 using UnityStandardAssets.Characters.FirstPerson;
 using UnityStandardAssets.CrossPlatformInput;
 
-[RequireComponent (typeof(RigidbodyFirstPersonController))]
 public class Player : MovingObject
 {
-	public RigidbodyFirstPersonController controller
-    {
-		get
-        {
-			return GetComponent<RigidbodyFirstPersonController> ();
-		}
-	}
-
-    public override Vector3 GetFocusDirection()
-    {
-        return controller.cam.transform.forward;
-    }
-
     public Vector3[] moveSets;
 	private Vector3 _activeMoveSet;
 	public Vector3 activeMoveSet
@@ -30,7 +16,7 @@ public class Player : MovingObject
             {
 				_moveSets [i] = moveSets [i];
 			}
-			return (MathStuff.GetClosestRotation (controller.cam.transform.localRotation, _moveSets));
+			return (MathStuff.GetClosestRotation (cam.transform.localRotation, _moveSets));
 		}
 		set
         {
@@ -56,25 +42,15 @@ public class Player : MovingObject
 
 	public override void Update ()
     {
-        //disable blocked/enable unblocked controllers and rigidbodies
-        if ((blockingMask & BlockingMask.Controller) != 0 && controller.enabled)
-            controller.enabled = false;
-        else if ((blockingMask & BlockingMask.Controller) == 0 && !controller.enabled)
-            controller.enabled = true;
-        if ((blockingMask & BlockingMask.Rigidbody) != 0 && !rigidbody.isKinematic)
-            rigidbody.isKinematic = true;
-        else if ((blockingMask & BlockingMask.Rigidbody) == 0 && rigidbody.isKinematic)
-            rigidbody.isKinematic = false;
-
         //update base class
         base.Update ();
 
 		//swift change lerp, and slow change correction
 		if (swiftChangeMoveSet)
         {
-			controller.cam.transform.localRotation = Quaternion.Lerp (controller.cam.transform.localRotation, Quaternion.Euler (_activeMoveSet), swiftChangeMoveSetSpeed * Time.deltaTime);
-			controller.mouseLook.Init (transform, controller.cam.transform);
-			if (controller.cam.transform.localRotation == Quaternion.Euler (_activeMoveSet))
+			cam.transform.localRotation = Quaternion.Lerp (cam.transform.localRotation, Quaternion.Euler (_activeMoveSet), swiftChangeMoveSetSpeed * Time.deltaTime);
+			mouseLook.Init (transform, cam.transform);
+			if (cam.transform.localRotation == Quaternion.Euler (_activeMoveSet))
 				swiftChangeMoveSet = false;
 		}
         else if (_activeMoveSet != activeMoveSet)
@@ -83,17 +59,17 @@ public class Player : MovingObject
 		//align ui gizmos
         foreach(SyncPosition syncPos in syncPositions)
         {
-            syncPos.enabled = activeMoveSet == moveSets[1] && !controller.Grounded;
+            syncPos.enabled = activeMoveSet == moveSets[1] && !Grounded;
         }
 
 		//controller animation
-		animator.SetBool ("Grounded", controller.Grounded);
-        Vector3 velocity = controller.Velocity;
+		animator.SetBool ("Grounded", Grounded);
+        Vector3 velocity = Velocity;
         velocity = new Vector3(velocity.x, 0.0f, velocity.z);
         animator.SetFloat ("MoveSpeed", velocity.magnitude);
 
         //can't grab while grounded
-        if (controller.Grounded)
+        if (Grounded)
             StopGrabbing();
 
         //mouse wheel inputs
