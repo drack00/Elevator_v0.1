@@ -46,7 +46,7 @@ public class MovingObject : MonoBehaviour
     }
     public virtual void NextAction() { }
 
-    //clash functions
+    //animation functions
     public virtual void Clash()
     {
         animator.SetTrigger("Clash");
@@ -69,7 +69,7 @@ public class MovingObject : MonoBehaviour
     }
     [HideInInspector]
     public BlockingMask blockingMask;
-    public bool fixBlockingMask;
+    public bool fixedBlockingMask;
     private BlockingMask defaultBlockingMask;
 
     //movement
@@ -335,7 +335,7 @@ public class MovingObject : MonoBehaviour
     }
     public virtual void FixedUpdate()
     {
-        if (fixBlockingMask)
+        if (fixedBlockingMask)
             blockingMask = defaultBlockingMask;
 
         if ((blockingMask & BlockingMask.Rigidbody) != 0 && !rigidbody.isKinematic)
@@ -362,7 +362,7 @@ public class MovingObject : MonoBehaviour
 
         if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.airControl || animator.GetBool("Grounded")))
         {
-            Vector3 desiredMove = GetFocus() * input.y + (Quaternion.Euler(0.0f, 90.0f, 0.0f) * GetFocus()) * input.x;
+            Vector3 desiredMove = transform.forward * input.y + transform.right * input.x;
             desiredMove = Vector3.ProjectOnPlane(desiredMove, m_GroundContactNormal).normalized;
 
             desiredMove.x = desiredMove.x * movementSettings.CurrentTargetSpeed;

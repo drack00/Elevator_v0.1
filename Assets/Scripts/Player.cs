@@ -45,11 +45,18 @@ public class Player : MovingObject
     }
     public override void NextAction()
     {
-        animator.SetBool("Left", CrossPlatformInputManager.GetButton("Fire1"));
-        animator.SetBool("Right", CrossPlatformInputManager.GetButton("Fire2"));
-
         if ((blockingMask & BlockingMask.Action) != 0)
+        {
+            animator.SetBool("Left", false);
+            animator.SetBool("Right", false);
+
             return;
+        }
+        else
+        {
+            animator.SetBool("Left", CrossPlatformInputManager.GetButton("Fire1"));
+            animator.SetBool("Right", CrossPlatformInputManager.GetButton("Fire2"));
+        } 
 
         if (CrossPlatformInputManager.GetButtonDown("Fire1"))
             animator.SetTrigger("LeftEdge");

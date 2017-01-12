@@ -32,6 +32,9 @@ public class Enemy : MovingObject
     }
     public override void RotateView()
     {
+        if ((blockingMask & BlockingMask.Orientation) != 0)
+            return;
+
         Quaternion rotation = ai.orientation.desiredRotation;
         if (restrictRotation)
             rotation = Quaternion.Euler(0.0f, rotation.eulerAngles.y, 0.0f);
