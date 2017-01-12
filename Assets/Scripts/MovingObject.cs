@@ -31,7 +31,7 @@ public class MovingObject : MonoBehaviour
         }
     }
 
-    //directional stuff
+    //functionality overrides
     public virtual Vector3 GetFocus()
     {
         return transform.forward;
@@ -68,8 +68,9 @@ public class MovingObject : MonoBehaviour
         Action = 32,
     }
     [HideInInspector]
-    [EnumFlag("Blocking Mask")]
     public BlockingMask blockingMask;
+    public bool fixBlockingMask;
+    private BlockingMask defaultBlockingMask;
 
     //movement
     [System.Serializable]
@@ -220,7 +221,7 @@ public class MovingObject : MonoBehaviour
     {
         isGrabbing = false;
         stopGrabbing = false;
-        blockingMask = 0;
+        blockingMask = defaultBlockingMask;
         ResetStun();
 
         alive = false;
@@ -229,7 +230,7 @@ public class MovingObject : MonoBehaviour
     {
         isGrabbing = false;
         stopGrabbing = false;
-        blockingMask = 0;
+        blockingMask = defaultBlockingMask;
         ResetStun();
 
         gameObject.SetActive(false);
@@ -302,12 +303,20 @@ public class MovingObject : MonoBehaviour
 	}
 
     //monobehaviour functions
-    public virtual void Awake() { }
+    public virtual void Awake()
+    {
+        if (rigidbody.isKinematic)
+            defaultBlockingMask |= BlockingMask.Rigidbody;
+        if (!rigidbody.useGravity)
+            defaultBlockingMask |= BlockingMask.Gravity;
+        if (collider.isTrigger)
+            defaultBlockingMask |= BlockingMask.Collision;
+    }
 	public virtual void Start ()
     {
         isGrabbing = false;
         stopGrabbing = false;
-        blockingMask = 0;
+        blockingMask = defaultBlockingMask;
         alive = true;
         ResetHealth();
         ResetStun();
@@ -326,14 +335,19 @@ public class MovingObject : MonoBehaviour
     }
     public virtual void FixedUpdate()
     {
+        if (fixBlockingMask)
+            blockingMask = defaultBlockingMask;
+
         if ((blockingMask & BlockingMask.Rigidbody) != 0 && !rigidbody.isKinematic)
             rigidbody.isKinematic = true;
         else if ((blockingMask & BlockingMask.Rigidbody) == 0 && rigidbody.isKinematic)
             rigidbody.isKinematic = false;
+
         if ((blockingMask & BlockingMask.Gravity) != 0 && rigidbody.useGravity)
             rigidbody.useGravity = false;
         else if ((blockingMask & BlockingMask.Gravity) == 0 && !rigidbody.useGravity)
             rigidbody.useGravity = true;
+ 
         if ((blockingMask & BlockingMask.Collision) != 0 && !collider.isTrigger)
             collider.isTrigger = true;
         else if ((blockingMask & BlockingMask.Collision) == 0 && collider.isTrigger)
