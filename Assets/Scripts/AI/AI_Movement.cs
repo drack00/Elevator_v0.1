@@ -340,4 +340,8 @@ public class AI_Movement : MonoBehaviour
                 break;
         }
     }
+    public void FixedUpdate()
+    {
+        agent.nextPosition = transform.position;
+    }
 }

@@ -8,14 +8,76 @@ using UnityStandardAssets.Characters.FirstPerson;
 [RequireComponent(typeof(Collider))]
 public class MovingObject : MonoBehaviour
 {
-    #region stuff i lifted from rigidbody firstperson controller
+    //components
+    public Animator animator
+    {
+        get
+        {
+            return GetComponent<Animator>();
+        }
+    }
+    public new Rigidbody rigidbody
+    {
+        get
+        {
+            return GetComponent<Rigidbody>();
+        }
+    }
+    public new Collider collider
+    {
+        get
+        {
+            return GetComponent<Collider>();
+        }
+    }
+
+    //directional stuff
+    public virtual Vector3 GetFocus()
+    {
+        return transform.forward;
+    }
+    public virtual Vector2 GetInput()
+    {
+        return Vector2.zero;
+    }
+    public virtual void RotateView()
+    {
+        transform.rotation = Quaternion.LookRotation(GetFocus());
+    }
+    public virtual void NextAction() { }
+
+    //clash functions
+    public virtual void Clash()
+    {
+        animator.SetTrigger("Clash");
+    }
+
+    //blocking mask
+    [System.Serializable]
+    [System.Flags]
+    public enum BlockingMask
+    {
+        Physics = Rigidbody | Gravity | Collision,
+        Rigidbody = 1,
+        Gravity = 2,
+        Collision = 4,
+
+        Input = Movement | Orientation | Action,
+        Movement = 8,
+        Orientation = 16,
+        Action = 32,
+    }
+    [HideInInspector]
+    [EnumFlag("Blocking Mask")]
+    public BlockingMask blockingMask;
+
+    //movement
     [System.Serializable]
     public class MovementSettings
     {
         public float ForwardSpeed = 8.0f;   // Speed when walking forward
         public float BackwardSpeed = 4.0f;  // Speed when walking backwards
         public float StrafeSpeed = 4.0f;    // Speed when walking sideways
-        public float JumpForce = 30f;
         public AnimationCurve SlopeCurveModifier = new AnimationCurve(new Keyframe(-90.0f, 1.0f), new Keyframe(0.0f, 1.0f), new Keyframe(90.0f, 0.0f));
         [HideInInspector]
         public float CurrentTargetSpeed = 8f;
@@ -40,9 +102,7 @@ public class MovingObject : MonoBehaviour
                 CurrentTargetSpeed = ForwardSpeed;
             }
         }
-
     }
-
     [System.Serializable]
     public class AdvancedSettings
     {
@@ -51,37 +111,15 @@ public class MovingObject : MonoBehaviour
         public float slowDownRate = 20f; // rate at which the controller comes to a stop when there is no input
         public bool airControl; // can the user control the direction that is being moved in the air
     }
-
-    public Camera cam;
     public MovementSettings movementSettings = new MovementSettings();
-    public MouseLook mouseLook = new MouseLook();
     public AdvancedSettings advancedSettings = new AdvancedSettings();
-
     private float m_YRotation;
     private Vector3 m_GroundContactNormal;
-    private bool m_Jump, m_PreviouslyGrounded, m_Jumping, m_IsGrounded;
-
-    public Vector3 Velocity
-    {
-        get { return rigidbody.velocity; }
-    }
-
-    public bool Grounded
-    {
-        get { return m_IsGrounded; }
-    }
-
-    public bool Jumping
-    {
-        get { return m_Jumping; }
-    }
-
     private float SlopeMultiplier()
     {
         float angle = Vector3.Angle(m_GroundContactNormal, Vector3.up);
         return movementSettings.SlopeCurveModifier.Evaluate(angle);
     }
-
     private void StickToGroundHelper()
     {
         Vector3 extents = collider.bounds.extents;
@@ -98,42 +136,8 @@ public class MovingObject : MonoBehaviour
             }
         }
     }
-
-    private Vector2 GetInput()
-    {
-
-        Vector2 input = new Vector2
-        {
-            x = CrossPlatformInputManager.GetAxis("Horizontal"),
-            y = CrossPlatformInputManager.GetAxis("Vertical")
-        };
-        movementSettings.UpdateDesiredTargetSpeed(input);
-        return input;
-    }
-
-    private void RotateView()
-    {
-        //avoids the mouse looking if the game is effectively paused
-        if (Mathf.Abs(Time.timeScale) < float.Epsilon) return;
-
-        // get the rotation before it's changed
-        float oldYRotation = transform.eulerAngles.y;
-
-        if (cam != null)
-            mouseLook.LookRotation(transform, cam.transform);
-
-        if (m_IsGrounded || advancedSettings.airControl)
-        {
-            // Rotate the rigidbody velocity to match the new direction that the character is looking
-            Quaternion velRotation = Quaternion.AngleAxis(transform.eulerAngles.y - oldYRotation, Vector3.up);
-            rigidbody.velocity = velRotation * rigidbody.velocity;
-        }
-    }
-
-    /// sphere cast down just beyond the bottom of the capsule to see if the capsule is colliding round the bottom
     private void GroundCheck()
     {
-        m_PreviouslyGrounded = m_IsGrounded;
         Vector3 extents = collider.bounds.extents;
         float height = extents.y;
         extents = new Vector3(extents.x, 0.0f, extents.z);
@@ -141,81 +145,17 @@ public class MovingObject : MonoBehaviour
         if (Physics.SphereCast(transform.position, extents.magnitude, Vector3.down, out hitInfo,
                                (height - extents.magnitude) + advancedSettings.groundCheckDistance))
         {
-            m_IsGrounded = true;
+            animator.SetBool("Grounded", true);
             m_GroundContactNormal = hitInfo.normal;
         }
         else
         {
-            m_IsGrounded = false;
+            animator.SetBool("Grounded", false);
             m_GroundContactNormal = Vector3.up;
         }
-        if (!m_PreviouslyGrounded && m_IsGrounded && m_Jumping)
-        {
-            m_Jumping = false;
-        }
-    }
-    #endregion
-
-
-    public Animator animator
-    {
-        get
-        {
-            return GetComponent<Animator> ();
-        }
-    }
-	public new Rigidbody rigidbody
-    {
-		get
-        {
-			return GetComponent<Rigidbody> ();
-		}
-	}
-    public new Collider collider
-    {
-        get
-        {
-            return GetComponent<Collider>();
-        }
-    }
-
-    //blocking mask
-    [System.Serializable]
-    [System.Flags]
-    public enum BlockingMask
-    {
-        Physics = Rigidbody | Gravity,
-        Rigidbody = 1,
-        Gravity = 2,
-
-        Input = LeftInputs | RightInputs | Controller,
-        LeftInputs = 16,
-        RightInputs = 32,
-        Controller = 64,
-
-        AI = AI_Movement | AI_Orientation | AI_Action,
-        AI_Movement = 128,
-        AI_Orientation = 256,
-        AI_Action = 512
-    }
-    [HideInInspector]
-    [EnumFlag("Blocking Mask")]
-    public BlockingMask blockingMask;
-
-    //clash function
-    public virtual void Clash ()
-    {
-        animator.SetTrigger("Clash");
     }
 
     //grab functions
-    public virtual Vector3 GetFocusDirection()
-    {
-        if (cam != null)
-            return cam.transform.forward;
-        else
-            return transform.forward;
-    }
     public Vector3 grabOffset;
     private bool isGrabbing = false;
     public void StartGrabbing(MovingObject other, bool invertXOffset = false)
@@ -239,7 +179,7 @@ public class MovingObject : MonoBehaviour
         stopGrabbing = false;
         while (!stopGrabbing)
         {
-            Vector3 position = (Quaternion.LookRotation(GetFocusDirection()) * grabOffset);
+            Vector3 position = (Quaternion.LookRotation(GetFocus()) * grabOffset);
             if (invertXOffset)
                 position = new Vector3(-1 * position.x, position.y, position.z);
             position += transform.position;
@@ -290,7 +230,6 @@ public class MovingObject : MonoBehaviour
 
         gameObject.SetActive(false);
     }
-
 	public float maxHealth;
 	private float _health;
 	public float health
@@ -322,7 +261,6 @@ public class MovingObject : MonoBehaviour
     {
 		health = maxHealth;
 	}
-		
 	public bool stunned
     {
 		get
@@ -358,7 +296,6 @@ public class MovingObject : MonoBehaviour
     {
 		stun = 0.0f;
 	}
-
 	public virtual void Spawn ()
     {
         isGrabbing = false;
@@ -369,49 +306,49 @@ public class MovingObject : MonoBehaviour
 		ResetStun ();
 	}
 
+    //monobehaviour functions
     public virtual void Awake() { }
-
 	public virtual void Start ()
     {
-        if (cam != null)
-            mouseLook.Init(transform, cam.transform);
-
         Spawn ();
 	}
-
 	public virtual void Update ()
     {
-        /*if ((blockingMask & BlockingMask.Controller) != 0 && controller.enabled)
-            controller.enabled = false;
-        else if ((blockingMask & BlockingMask.Controller) == 0 && !controller.enabled)
-            controller.enabled = true;*/
+        animator.SetFloat ("MoveSpeed", new Vector3(rigidbody.velocity.x, 0.0f, rigidbody.velocity.z).magnitude);
+
+        if (animator.GetBool("Grounded"))
+            StopGrabbing();
+
+        if (health < maxHealth)
+            health += healthRegen * Time.deltaTime;
+        if (stunned)
+            stun -= stunRecovery * Time.deltaTime;
+    }
+    public virtual void FixedUpdate()
+    {
         if ((blockingMask & BlockingMask.Rigidbody) != 0 && !rigidbody.isKinematic)
             rigidbody.isKinematic = true;
         else if ((blockingMask & BlockingMask.Rigidbody) == 0 && rigidbody.isKinematic)
             rigidbody.isKinematic = false;
+        if ((blockingMask & BlockingMask.Gravity) != 0 && rigidbody.useGravity)
+            rigidbody.useGravity = false;
+        else if ((blockingMask & BlockingMask.Gravity) == 0 && !rigidbody.useGravity)
+            rigidbody.useGravity = true;
+        if ((blockingMask & BlockingMask.Collision) != 0 && !collider.isTrigger)
+            collider.isTrigger = true;
+        else if ((blockingMask & BlockingMask.Collision) == 0 && collider.isTrigger)
+            collider.isTrigger = false;
+
+        NextAction();
 
         RotateView();
 
-        if (CrossPlatformInputManager.GetButtonDown("Jump") && !m_Jump)
-        {
-            m_Jump = true;
-        }
-
-        if (health < maxHealth)
-			health += healthRegen * Time.deltaTime;
-		if (stunned)
-			stun -= stunRecovery * Time.deltaTime;
-	}
-
-    public virtual void FixedUpdate()
-    {
         GroundCheck();
         Vector2 input = GetInput();
 
-        if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.airControl || m_IsGrounded))
+        if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.airControl || animator.GetBool("Grounded")))
         {
-            // always move along the camera forward as it is the direction that it being aimed at
-            Vector3 desiredMove = GetFocusDirection() * input.y + (Quaternion.Euler(0.0f, 90.0f, 0.0f) * GetFocusDirection()) * input.x;
+            Vector3 desiredMove = GetFocus() * input.y + (Quaternion.Euler(0.0f, 90.0f, 0.0f) * GetFocus()) * input.x;
             desiredMove = Vector3.ProjectOnPlane(desiredMove, m_GroundContactNormal).normalized;
 
             desiredMove.x = desiredMove.x * movementSettings.CurrentTargetSpeed;
@@ -424,31 +361,12 @@ public class MovingObject : MonoBehaviour
             }
         }
 
-        if (m_IsGrounded)
-        {
+        if (animator.GetBool("Grounded"))
             rigidbody.drag = 5f;
-
-            if (m_Jump)
-            {
-                rigidbody.drag = 0f;
-                rigidbody.velocity = new Vector3(rigidbody.velocity.x, 0f, rigidbody.velocity.z);
-                rigidbody.AddForce(new Vector3(0f, movementSettings.JumpForce, 0f), ForceMode.Impulse);
-                m_Jumping = true;
-            }
-
-            if (!m_Jumping && Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && rigidbody.velocity.magnitude < 1f)
-            {
-                rigidbody.Sleep();
-            }
-        }
         else
         {
             rigidbody.drag = 0f;
-            if (m_PreviouslyGrounded && !m_Jumping)
-            {
-                StickToGroundHelper();
-            }
+            StickToGroundHelper();
         }
-        m_Jump = false;
     }
 }

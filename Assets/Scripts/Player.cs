@@ -5,6 +5,63 @@ using UnityStandardAssets.CrossPlatformInput;
 
 public class Player : MovingObject
 {
+    public override Vector3 GetFocus()
+    {
+        return cam.transform.forward; ;
+    }
+    public override Vector2 GetInput()
+    {
+        if ((blockingMask & BlockingMask.Movement) != 0)
+            return base.GetInput();
+
+        Vector2 input = new Vector2
+        {
+            x = CrossPlatformInputManager.GetAxis("Horizontal"),
+            y = CrossPlatformInputManager.GetAxis("Vertical")
+        };
+        movementSettings.UpdateDesiredTargetSpeed(input);
+        return input;
+    }
+    public override void RotateView()
+    {
+        if ((blockingMask & BlockingMask.Orientation) != 0)
+            base.RotateView();
+
+        //avoids the mouse looking if the game is effectively paused
+        if (Mathf.Abs(Time.timeScale) < float.Epsilon) return;
+
+        // get the rotation before it's changed
+        float oldYRotation = transform.eulerAngles.y;
+
+        //look rotation
+        mouseLook.LookRotation(transform, cam.transform);
+
+        if (animator.GetBool("Grounded") || advancedSettings.airControl)
+        {
+            // Rotate the rigidbody velocity to match the new direction that the character is looking
+            Quaternion velRotation = Quaternion.AngleAxis(transform.eulerAngles.y - oldYRotation, Vector3.up);
+            rigidbody.velocity = velRotation * rigidbody.velocity;
+        }
+    }
+    public override void NextAction()
+    {
+        animator.SetBool("Left", CrossPlatformInputManager.GetButton("Fire1"));
+        animator.SetBool("Right", CrossPlatformInputManager.GetButton("Fire2"));
+
+        if ((blockingMask & BlockingMask.Action) != 0)
+            return;
+
+        if (CrossPlatformInputManager.GetButtonDown("Fire1"))
+            animator.SetTrigger("LeftEdge");
+        if (CrossPlatformInputManager.GetButtonDown("Fire2"))
+            animator.SetTrigger("RightEdge");
+        if (CrossPlatformInputManager.GetButtonDown("Jump"))
+            animator.SetTrigger("Jump");
+    }
+
+    public Camera cam;
+    public MouseLook mouseLook = new MouseLook();
+
     public Vector3[] moveSets;
 	private Vector3 _activeMoveSet;
 	public Vector3 activeMoveSet
@@ -31,22 +88,23 @@ public class Player : MovingObject
     public SyncPosition[] syncPositions;
 
 	public float swiftChangeMoveSetSpeed;
-	private bool swiftChangeMoveSet;
+	private bool swiftChangeMoveSet = false;
 
-	public override void Start ()
+    public override void Start ()
     {
-		base.Start ();
+        mouseLook.Init(transform, cam.transform);
 
-		activeMoveSet = moveSets[0];
+        activeMoveSet = moveSets[0];
+
+        base.Start ();
 	}
-
 	public override void Update ()
     {
         //update base class
         base.Update ();
 
-		//swift change lerp, and slow change correction
-		if (swiftChangeMoveSet)
+        //swift change lerp, and slow change correction
+        if (swiftChangeMoveSet)
         {
 			cam.transform.localRotation = Quaternion.Lerp (cam.transform.localRotation, Quaternion.Euler (_activeMoveSet), swiftChangeMoveSetSpeed * Time.deltaTime);
 			mouseLook.Init (transform, cam.transform);
@@ -59,20 +117,10 @@ public class Player : MovingObject
 		//align ui gizmos
         foreach(SyncPosition syncPos in syncPositions)
         {
-            syncPos.enabled = activeMoveSet == moveSets[1] && !Grounded;
+            syncPos.enabled = activeMoveSet == moveSets[1] && !animator.GetBool("Grounded");
         }
 
-		//controller animation
-		animator.SetBool ("Grounded", Grounded);
-        Vector3 velocity = Velocity;
-        velocity = new Vector3(velocity.x, 0.0f, velocity.z);
-        animator.SetFloat ("MoveSpeed", velocity.magnitude);
-
-        //can't grab while grounded
-        if (Grounded)
-            StopGrabbing();
-
-        //mouse wheel inputs
+        //mouse wheel
         if (CrossPlatformInputManager.GetAxis ("Mouse ScrollWheel") < 0.0f)
         {
 			swiftChangeMoveSet = true;
@@ -83,25 +131,5 @@ public class Player : MovingObject
 			swiftChangeMoveSet = true;
 			activeMoveSet = moveSets [0];
 		}
-			
-		//mouse button inputs
-		animator.SetBool ("Left", CrossPlatformInputManager.GetButton ("Fire1"));
-		animator.SetBool ("Right", CrossPlatformInputManager.GetButton ("Fire2"));
-
-        //mouse button edges
-        if ((blockingMask & BlockingMask.LeftInputs) == 0)
-        {
-            if (CrossPlatformInputManager.GetButtonDown("Fire1"))
-                animator.SetTrigger("LeftEdge");
-        }
-        else
-            animator.SetBool("Left", false);
-        if ((blockingMask & BlockingMask.RightInputs) == 0)
-        {
-            if (CrossPlatformInputManager.GetButtonDown("Fire2"))
-                animator.SetTrigger("RightEdge");
-        }
-        else
-            animator.SetBool("Right", false);
 	}
 }
