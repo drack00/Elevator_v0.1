@@ -3,7 +3,7 @@ using System.Collections;
 using UnityStandardAssets.Characters.FirstPerson;
 using UnityStandardAssets.CrossPlatformInput;
 
-public class Player : MovingObject
+public class Player : AnimatedMovingObject
 {
     public override Vector3 GetFocus()
     {
@@ -36,7 +36,7 @@ public class Player : MovingObject
         //look rotation
         mouseLook.LookRotation(transform, cam.transform);
 
-        if (animator.GetBool("Grounded") || advancedSettings.airControl)
+        if (GetGrounded() || advancedSettings.airControl)
         {
             // Rotate the rigidbody velocity to match the new direction that the character is looking
             Quaternion velRotation = Quaternion.AngleAxis(transform.eulerAngles.y - oldYRotation, Vector3.up);
@@ -124,7 +124,7 @@ public class Player : MovingObject
 		//align ui gizmos
         foreach(SyncPosition syncPos in syncPositions)
         {
-            syncPos.enabled = activeMoveSet == moveSets[1] && !animator.GetBool("Grounded");
+            syncPos.enabled = activeMoveSet == moveSets[1] && !GetGrounded();
         }
 
         //mouse wheel

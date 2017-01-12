@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(AI_Master))]
-public class Enemy : MovingObject
+public class Enemy : AnimatedMovingObject
 {
     public AI_Master ai
     {

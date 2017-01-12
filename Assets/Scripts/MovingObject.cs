@@ -3,19 +3,11 @@ using System.Collections;
 using UnityStandardAssets.CrossPlatformInput;
 using UnityStandardAssets.Characters.FirstPerson;
 
-[RequireComponent(typeof(Animator))]
 [RequireComponent (typeof(Rigidbody))]
 [RequireComponent(typeof(Collider))]
 public class MovingObject : MonoBehaviour
 {
     //components
-    public Animator animator
-    {
-        get
-        {
-            return GetComponent<Animator>();
-        }
-    }
     public new Rigidbody rigidbody
     {
         get
@@ -47,9 +39,41 @@ public class MovingObject : MonoBehaviour
     public virtual void NextAction() { }
 
     //animation functions
-    public virtual void Clash()
+    public virtual void Clash() { }
+    public virtual void SetAlive(bool _alive) { }
+    public virtual bool GetAlive()
     {
-        animator.SetTrigger("Clash");
+        return _alive;
+    }
+    public virtual void SetGrounded(bool _grounded) { }
+    public virtual bool GetGrounded()
+    {
+        return false;
+    }
+    public virtual void SetGrab(bool _grab) { }
+    public virtual bool GetGrab()
+    {
+        return false;
+    }
+    public virtual void SetGrabbed(bool _grabbed) { }
+    public virtual bool GetGrabbed()
+    {
+        return false;
+    }
+    public virtual void SetMoveSpeed(float _moveSpeed) { }
+    public virtual float GetMoveSpeed()
+    {
+        return rigidbody.velocity.magnitude;
+    }
+    public virtual void SetHealth(float _health) { }
+    public virtual float GetHealth()
+    {
+        return _health;
+    }
+    public virtual void SetStun(float _stun) { }
+    public virtual float GetStun()
+    {
+        return _stun;
     }
 
     //blocking mask
@@ -140,7 +164,7 @@ public class MovingObject : MonoBehaviour
     }
     private void GroundCheck()
     {
-        m_PreviouslyGrounded = animator.GetBool("Grounded");
+        m_PreviouslyGrounded = GetGrounded();
 
         Vector3 extents = collider.bounds.extents;
         float height = extents.y;
@@ -150,12 +174,12 @@ public class MovingObject : MonoBehaviour
                                (height - extents.magnitude) + 
                                advancedSettings.groundCheckDistance))
         {
-            animator.SetBool("Grounded", true);
+            SetGrounded(true);
             m_GroundContactNormal = hitInfo.normal;
         }
         else
         {
-            animator.SetBool("Grounded", false);
+            SetGrounded(false);
             m_GroundContactNormal = Vector3.up;
         }
     }
@@ -178,8 +202,8 @@ public class MovingObject : MonoBehaviour
     {
         isGrabbing = true;
 
-        animator.SetBool("Grab", true);
-        other.animator.SetBool("Grabbed", true);
+        SetGrab(true);
+        other.SetGrabbed(true);
 
         stopGrabbing = false;
         while (!stopGrabbing)
@@ -196,8 +220,8 @@ public class MovingObject : MonoBehaviour
         }
         stopGrabbing = false;
 
-        animator.SetBool("Grab", false);
-        other.animator.SetBool("Grabbed", false);
+        SetGrab(false);
+        other.SetGrabbed(false);
 
         isGrabbing = false;
     }
@@ -214,7 +238,7 @@ public class MovingObject : MonoBehaviour
         {
 			_alive = value;
 
-			animator.SetBool ("Alive", _alive);
+            SetAlive(_alive);
 		}
 	}
     public virtual void Kill ()
@@ -255,7 +279,7 @@ public class MovingObject : MonoBehaviour
 
 			_health = value;
 
-			animator.SetFloat ("Health", _health);
+            SetHealth(_health);
 
             if (Mathf.Approximately(_health, Mathf.Epsilon))
                 Kill();
@@ -293,7 +317,7 @@ public class MovingObject : MonoBehaviour
 
 			_stun = value;
 
-			animator.SetFloat ("Stun", _stun);
+            SetStun(_stun);
 		}
 	}
 	public float stunRecovery;
@@ -323,9 +347,9 @@ public class MovingObject : MonoBehaviour
     }
 	public virtual void Update ()
     {
-        animator.SetFloat ("MoveSpeed", new Vector3(rigidbody.velocity.x, 0.0f, rigidbody.velocity.z).magnitude);
+        SetMoveSpeed(new Vector3(rigidbody.velocity.x, 0.0f, rigidbody.velocity.z).magnitude);
 
-        if (animator.GetBool("Grounded"))
+        if (GetGrounded())
             StopGrabbing();
 
         if (health < maxHealth)
@@ -360,7 +384,7 @@ public class MovingObject : MonoBehaviour
         GroundCheck();
         Vector2 input = GetInput();
 
-        if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.airControl || animator.GetBool("Grounded")))
+        if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.airControl || GetGrounded()))
         {
             Vector3 desiredMove = transform.forward * input.y + transform.right * input.x;
             desiredMove = Vector3.ProjectOnPlane(desiredMove, m_GroundContactNormal).normalized;
@@ -375,7 +399,7 @@ public class MovingObject : MonoBehaviour
             }
         }
 
-        if (animator.GetBool("Grounded"))
+        if (GetGrounded())
         {
             rigidbody.drag = 5f;
 
