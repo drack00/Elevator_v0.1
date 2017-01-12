@@ -25,7 +25,7 @@ public class Player : MovingObject
     public override void RotateView()
     {
         if ((blockingMask & BlockingMask.Orientation) != 0)
-            base.RotateView();
+            return;
 
         //avoids the mouse looking if the game is effectively paused
         if (Mathf.Abs(Time.timeScale) < float.Epsilon) return;

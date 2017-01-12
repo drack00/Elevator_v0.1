@@ -115,6 +115,7 @@ public class MovingObject : MonoBehaviour
     public AdvancedSettings advancedSettings = new AdvancedSettings();
     private float m_YRotation;
     private Vector3 m_GroundContactNormal;
+    private bool m_PreviouslyGrounded;
     private float SlopeMultiplier()
     {
         float angle = Vector3.Angle(m_GroundContactNormal, Vector3.up);
@@ -138,12 +139,15 @@ public class MovingObject : MonoBehaviour
     }
     private void GroundCheck()
     {
+        m_PreviouslyGrounded = animator.GetBool("Grounded");
+
         Vector3 extents = collider.bounds.extents;
         float height = extents.y;
         extents = new Vector3(extents.x, 0.0f, extents.z);
         RaycastHit hitInfo;
         if (Physics.SphereCast(transform.position, extents.magnitude, Vector3.down, out hitInfo,
-                               (height - extents.magnitude) + advancedSettings.groundCheckDistance))
+                               (height - extents.magnitude) + 
+                               advancedSettings.groundCheckDistance))
         {
             animator.SetBool("Grounded", true);
             m_GroundContactNormal = hitInfo.normal;
@@ -296,22 +300,18 @@ public class MovingObject : MonoBehaviour
     {
 		stun = 0.0f;
 	}
-	public virtual void Spawn ()
-    {
-        isGrabbing = false;
-        stopGrabbing = false;
-        blockingMask = 0;
-        alive = true;
-		ResetHealth ();
-		ResetStun ();
-	}
 
     //monobehaviour functions
     public virtual void Awake() { }
 	public virtual void Start ()
     {
-        Spawn ();
-	}
+        isGrabbing = false;
+        stopGrabbing = false;
+        blockingMask = 0;
+        alive = true;
+        ResetHealth();
+        ResetStun();
+    }
 	public virtual void Update ()
     {
         animator.SetFloat ("MoveSpeed", new Vector3(rigidbody.velocity.x, 0.0f, rigidbody.velocity.z).magnitude);
@@ -362,11 +362,21 @@ public class MovingObject : MonoBehaviour
         }
 
         if (animator.GetBool("Grounded"))
+        {
             rigidbody.drag = 5f;
+
+            if (Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && rigidbody.velocity.magnitude < 1f)
+            {
+                rigidbody.Sleep();
+            }
+        }
         else
         {
             rigidbody.drag = 0f;
-            StickToGroundHelper();
+            if (m_PreviouslyGrounded)
+            {
+                StickToGroundHelper();
+            }
         }
     }
 }
