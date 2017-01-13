@@ -105,7 +105,8 @@ public class GameController : MonoBehaviour
             return go;
         }
 
-        [HideInInspector]public List<GameObject> gos;
+        [HideInInspector]
+        public List<GameObject> gos;
         private bool areAllSpawned
         {
             get

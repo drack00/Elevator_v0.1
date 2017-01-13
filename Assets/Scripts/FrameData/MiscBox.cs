@@ -3,6 +3,7 @@ using System.Collections;
 
 public class MiscBox : ActiveFrameData
 {
+    [EnumFlag("Blocking Mask")]
     public MovingObject.BlockingMask blockingMask;
     public bool additive = true;
 
@@ -12,15 +13,14 @@ public class MiscBox : ActiveFrameData
 
     public void OnEnable()
     {
-        enableBehaviour.Do(false, this);
-
         if (additive)
             mo.blockingMask |= blockingMask;
+
+        enableBehaviour.Do(false, this);
     }
     public void OnDisable()
     {
-        if (additive)
-            mo.blockingMask ^= blockingMask;
+        mo.blockingMask ^= blockingMask;
         
         disableBehaviour.Do(false, this);
     }

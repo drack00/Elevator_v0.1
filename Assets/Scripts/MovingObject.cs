@@ -90,6 +90,9 @@ public class MovingObject : MonoBehaviour
         Movement = 8,
         Orientation = 16,
         Action = 32,
+
+        MovingObject = GroundStick,
+        GroundStick = 64
     }
     [HideInInspector]
     public BlockingMask blockingMask;
@@ -395,7 +398,7 @@ public class MovingObject : MonoBehaviour
             if (rigidbody.velocity.sqrMagnitude <
                 (movementSettings.CurrentTargetSpeed * movementSettings.CurrentTargetSpeed))
             {
-                rigidbody.AddForce(desiredMove * SlopeMultiplier(), ForceMode.Impulse);
+                rigidbody.AddForce(desiredMove * SlopeMultiplier(), ForceMode.VelocityChange);
             }
         }
 
@@ -411,7 +414,7 @@ public class MovingObject : MonoBehaviour
         else
         {
             rigidbody.drag = 0f;
-            if (m_PreviouslyGrounded)
+            if ((blockingMask & BlockingMask.GroundStick) == 0 && m_PreviouslyGrounded)
             {
                 StickToGroundHelper();
             }
