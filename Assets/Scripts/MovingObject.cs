@@ -328,6 +328,7 @@ public class MovingObject : MonoBehaviour
     {
 		stun = 0.0f;
 	}
+    private Vector2 input = Vector2.zero;
 
     //monobehaviour functions
     public virtual void Awake()
@@ -351,6 +352,10 @@ public class MovingObject : MonoBehaviour
 	public virtual void Update ()
     {
         SetMoveSpeed(new Vector3(rigidbody.velocity.x, 0.0f, rigidbody.velocity.z).magnitude);
+
+        NextAction();
+        RotateView();
+        input = GetInput();
 
         if (GetGrounded())
             StopGrabbing();
@@ -380,12 +385,7 @@ public class MovingObject : MonoBehaviour
         else if ((blockingMask & BlockingMask.Collision) == 0 && collider.isTrigger)
             collider.isTrigger = false;
 
-        NextAction();
-
-        RotateView();
-
         GroundCheck();
-        Vector2 input = GetInput();
 
         if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.airControl || GetGrounded()))
         {

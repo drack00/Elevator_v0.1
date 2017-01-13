@@ -21,73 +21,8 @@ public class Player : AnimatedMovingObject
         };
         movementSettings.UpdateDesiredTargetSpeed(input);
 
-        GetTap(input);
-
         return input;
     }
-    private void GetTap(Vector2 input)
-    {
-        if (lastInput == Vector2.zero)
-        {
-            if (input.y > 0.0f)
-            {
-                if (tapForward)
-                {
-                    animator.SetTrigger("DashForward");
-                    tapForward = false;
-                }
-                else
-                    tapForward = true;
-            }
-            else
-                tapForward = false;
-
-            if (input.y < 0.0f)
-            {
-                if (tapBack)
-                {
-                    animator.SetTrigger("DashBack");
-                    tapBack = false;
-                }
-                else
-                    tapBack = true;
-            }
-            else
-                tapBack = false;
-
-            if (input.x > 0.0f)
-            {
-                if (tapRight)
-                {
-                    animator.SetTrigger("DashRight");
-                    tapRight = false;
-                }
-                else
-                    tapRight = true;
-            }
-            else
-                tapRight = false;
-
-            if (input.x < 0.0f)
-            {
-                if (tapLeft)
-                {
-                    animator.SetTrigger("DashLeft");
-                    tapLeft = false;
-                }
-                else
-                    tapLeft = true;
-            }
-            else
-                tapLeft = false;
-        }
-        lastInput = input;
-    }
-    private Vector2 lastInput = Vector2.zero;
-    private bool tapForward = false;
-    private bool tapBack = false;
-    private bool tapLeft = false;
-    private bool tapRight = false;
     public override void RotateView()
     {
         if ((blockingMask & BlockingMask.Orientation) != 0)
@@ -109,6 +44,12 @@ public class Player : AnimatedMovingObject
             rigidbody.velocity = velRotation * rigidbody.velocity;
         }
     }
+    private bool tapForward = false;
+    private bool tapRight = false;
+    private bool tapBack = false;
+    private bool tapLeft = false;
+    public float tapExpire;
+    private float _tapExpire = 0.0f;
     public override void NextAction()
     {
         if ((blockingMask & BlockingMask.Action) != 0)
@@ -116,13 +57,61 @@ public class Player : AnimatedMovingObject
             animator.SetBool("Left", false);
             animator.SetBool("Right", false);
 
+            tapForward = false;
+            tapLeft = false;
+            tapBack = false;
+            tapRight = false;
+
             return;
         }
         else
         {
             animator.SetBool("Left", CrossPlatformInputManager.GetButton("Fire1"));
             animator.SetBool("Right", CrossPlatformInputManager.GetButton("Fire2"));
-        } 
+        }
+
+        
+
+        if (CrossPlatformInputManager.GetButtonDown("Up"))
+        {
+            if (!tapForward)
+            {
+                tapForward = true;
+                _tapExpire = tapExpire;
+            }
+            else
+                animator.SetTrigger("DashForward");
+        }
+        if (CrossPlatformInputManager.GetButtonDown("Right"))
+        {
+            if (!tapRight)
+            {
+                tapRight = true;
+                _tapExpire = tapExpire;
+            }
+            else
+                animator.SetTrigger("DashRight");
+        }
+        if (CrossPlatformInputManager.GetButtonDown("Down"))
+        {
+            if (!tapBack)
+            {
+                tapBack = true;
+                _tapExpire = tapExpire;
+            }
+            else
+                animator.SetTrigger("DashBack");
+        }
+        if (CrossPlatformInputManager.GetButtonDown("Left"))
+        {
+            if (!tapLeft)
+            {
+                tapLeft = true;
+                _tapExpire = tapExpire;
+            }
+            else
+                animator.SetTrigger("DashLeft");
+        }
 
         if (CrossPlatformInputManager.GetButtonDown("Fire1"))
             animator.SetTrigger("LeftEdge");
@@ -175,6 +164,22 @@ public class Player : AnimatedMovingObject
     {
         //update base class
         base.Update ();
+
+        //capture input strings
+        if (Mathf.Approximately(_tapExpire, Mathf.Epsilon))
+        {
+            tapForward = false;
+            tapLeft = false;
+            tapBack = false;
+            tapRight = false;
+        }
+        else
+        {
+            _tapExpire -= Time.deltaTime;
+
+            if (_tapExpire < 0.0f)
+                _tapExpire = 0.0f;
+        }
 
         //swift change lerp, and slow change correction
         if (swiftChangeMoveSet)
