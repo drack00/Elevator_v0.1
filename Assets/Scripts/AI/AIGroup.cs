@@ -11,108 +11,53 @@ public class AIGroup : MonoBehaviour {
         }
     }
 
-    public static bool GetApproval(MovingObject mo)
+    public static bool GetApproval(AI_Master ai)
     {
         foreach (AIGroup group in allGroups)
         {
-            if (group.members.Contains(mo))
-                return group.CheckForApproval(mo);
+            if (group.members.Contains(ai))
+                return group.CheckForApproval(ai);
         }
 
         return false;
     }
-    public static bool GetApproval(MovingObject mo, string tag)
+    public static void RemoveApproval (AI_Master ai)
     {
         foreach (AIGroup group in allGroups)
         {
-            if (group.members.Contains(mo) && group.tag == tag)
-                return group.CheckForApproval(mo);
+            if (group.members.Contains(ai))
+                group.RemoveFromApprovedMembers(ai);
+        }
+    }
+
+    public bool CheckForApproval(AI_Master ai)
+    {
+        if (approvedMembers.Contains(ai))
+            return true;
+        else if (approvedMembers.Count < 1)
+        {
+            approvedMembers.Add(ai);
+
+            return true;
         }
 
         return false;
     }
-    public static bool GetApproval(MovingObject mo, LayerMask layerMask)
+    public void RemoveFromApprovedMembers(AI_Master ai)
     {
-        foreach (AIGroup group in allGroups)
-        {
-            if (group.members.Contains(mo) && (group.gameObject.layer & layerMask) != 0)
-                return group.CheckForApproval(mo);
-        }
-
-        return false;
-    }
-    public static bool GetApproval(MovingObject mo, string tag, LayerMask layerMask)
-    {
-        foreach (AIGroup group in allGroups)
-        {
-            if (group.members.Contains(mo) && group.tag == tag && (group.gameObject.layer & layerMask) != 0)
-                return group.CheckForApproval(mo);
-        }
-
-        return false;
-    }
-
-    public static void RemoveApproval (MovingObject mo)
-    {
-        foreach (AIGroup group in allGroups)
-        {
-            if (group.members.Contains(mo))
-                group.RemoveFromApprovedMembers(mo);
-        }
-    }
-    public static void RemoveApproval(MovingObject mo, string tag)
-    {
-        foreach (AIGroup group in allGroups)
-        {
-            if (group.members.Contains(mo) && group.tag == tag)
-                group.RemoveFromApprovedMembers(mo);
-        }
-    }
-    public static void RemoveApproval(MovingObject mo, LayerMask layerMask)
-    {
-        foreach (AIGroup group in allGroups)
-        {
-            if (group.members.Contains(mo) && (group.gameObject.layer & layerMask) != 0)
-                group.RemoveFromApprovedMembers(mo);
-        }
-    }
-    public static void RemoveApproval(MovingObject mo, string tag, LayerMask layerMask)
-    {
-        foreach (AIGroup group in allGroups)
-        {
-            if (group.members.Contains(mo) && group.tag == tag && (group.gameObject.layer & layerMask) != 0)
-                group.RemoveFromApprovedMembers(mo);
-        }
+        if (approvedMembers.Contains(ai))
+            approvedMembers.Remove(ai);
     }
 
     [HideInInspector]
-    public List<MovingObject> members;
-    private List<MovingObject> approvedMembers;
-    public int maxApprovals;
+    public List<AI_Master> members = new List<AI_Master>();
+    private List<AI_Master> approvedMembers = new List<AI_Master>();
 
-    void Awake()
+    public void FixedUpdate()
     {
-        members = new List<MovingObject>();
-        approvedMembers = new List<MovingObject>();
-    }
-
-    public bool CheckForApproval (MovingObject mo)
-    {
-        if (approvedMembers.Contains(mo))
-            return true;
-        else if (approvedMembers.Count < maxApprovals)
-        {
-            approvedMembers.Add(mo);
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public void RemoveFromApprovedMembers(MovingObject mo)
-    {
-        if (approvedMembers.Contains(mo))
-            approvedMembers.Remove(mo);
+        if (members.Count < 1)
+            Destroy(gameObject);
+        else
+            transform.position = members[0].transform.position;
     }
 }

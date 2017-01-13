@@ -125,8 +125,6 @@ public class AI_Master : MonoBehaviour
             public float stunThreshold;
 
             public bool requireGroupApproval;
-            public string groupTag;
-            public LayerMask groupLayerMask;
 
             private float _warmup;
             public float warmup;
@@ -148,39 +146,9 @@ public class AI_Master : MonoBehaviour
                 if (requireGroupApproval)
                 {
                     if (_check)
-                    {
-                        if (!string.IsNullOrEmpty(groupTag))
-                        {
-                            if (groupLayerMask != 0)
-                                _check = AIGroup.GetApproval(mo, groupTag, groupLayerMask);
-                            else
-                                _check = AIGroup.GetApproval(mo, groupTag);
-                        }
-                        else
-                        {
-                            if (groupLayerMask != 0)
-                                _check = AIGroup.GetApproval(mo, groupLayerMask);
-                            else
-                                _check = AIGroup.GetApproval(mo);
-                        }
-                    }
+                        _check = AIGroup.GetApproval(master);
                     else
-                    {
-                        if (!string.IsNullOrEmpty(groupTag))
-                        {
-                            if (groupLayerMask != 0)
-                                AIGroup.RemoveApproval(mo, groupTag, groupLayerMask);
-                            else
-                                AIGroup.RemoveApproval(mo, groupTag);
-                        }
-                        else
-                        {
-                            if (groupLayerMask != 0)
-                                AIGroup.RemoveApproval(mo, groupLayerMask);
-                            else
-                                AIGroup.RemoveApproval(mo);
-                        }
-                    }
+                        AIGroup.RemoveApproval(master);
                 }
 
                 //warmup frames
