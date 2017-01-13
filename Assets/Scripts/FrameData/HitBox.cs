@@ -10,7 +10,6 @@ public class HitBox : ActiveFrameData
     public LayerMask targetLayers;
     public LayerMask clashLayers;
     public bool continuous;
-    [Tooltip("Set to -1 to allow for infinite hurtboxes.")]
     public int maxHurts;
     public bool retainHurts;
 

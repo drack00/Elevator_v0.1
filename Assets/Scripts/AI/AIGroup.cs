@@ -55,6 +55,16 @@ public class AIGroup : MonoBehaviour {
 
     public void FixedUpdate()
     {
+        int i = 0;
+        while (i < members.Count)
+        {
+            AI_Master _go = members[i];
+            if (_go == null)
+                members.Remove(_go);
+            else
+                i++;
+        }
+
         if (members.Count < 1)
             Destroy(gameObject);
         else

@@ -99,6 +99,16 @@ public class FrameData : MonoBehaviour
 
         public void Do(bool continuous, FrameData hit, FrameData hurt = null)
         {
+            int i = 0;
+            while(i < gos.Count)
+            {
+                GameObject _go = gos[i];
+                if (_go == null)
+                    gos.Remove(_go);
+                else
+                    i++;
+            }
+
             if (gos.Count >= maxSpawns && maxSpawns >= 0)
                 return;
 
