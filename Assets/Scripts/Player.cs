@@ -20,8 +20,74 @@ public class Player : AnimatedMovingObject
             y = CrossPlatformInputManager.GetAxis("Vertical")
         };
         movementSettings.UpdateDesiredTargetSpeed(input);
+
+        GetTap(input);
+
         return input;
     }
+    private void GetTap(Vector2 input)
+    {
+        if (lastInput == Vector2.zero)
+        {
+            if (input.y > 0.0f)
+            {
+                if (tapForward)
+                {
+                    animator.SetTrigger("DashForward");
+                    tapForward = false;
+                }
+                else
+                    tapForward = true;
+            }
+            else
+                tapForward = false;
+
+            if (input.y < 0.0f)
+            {
+                if (tapBack)
+                {
+                    animator.SetTrigger("DashBack");
+                    tapBack = false;
+                }
+                else
+                    tapBack = true;
+            }
+            else
+                tapBack = false;
+
+            if (input.x > 0.0f)
+            {
+                if (tapRight)
+                {
+                    animator.SetTrigger("DashRight");
+                    tapRight = false;
+                }
+                else
+                    tapRight = true;
+            }
+            else
+                tapRight = false;
+
+            if (input.x < 0.0f)
+            {
+                if (tapLeft)
+                {
+                    animator.SetTrigger("DashLeft");
+                    tapLeft = false;
+                }
+                else
+                    tapLeft = true;
+            }
+            else
+                tapLeft = false;
+        }
+        lastInput = input;
+    }
+    private Vector2 lastInput = Vector2.zero;
+    private bool tapForward = false;
+    private bool tapBack = false;
+    private bool tapLeft = false;
+    private bool tapRight = false;
     public override void RotateView()
     {
         if ((blockingMask & BlockingMask.Orientation) != 0)
