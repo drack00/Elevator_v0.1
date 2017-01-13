@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(Collider))]
 public class FrameData : MonoBehaviour
@@ -80,6 +81,9 @@ public class FrameData : MonoBehaviour
     [System.Serializable]
     public class Spawn
     {
+        public int maxSpawns;
+        private List<GameObject> gos = new List<GameObject>();
+
         public GameObject spawnPrefab;
 
         public SortVectors.ApplyType positionType;
@@ -95,6 +99,9 @@ public class FrameData : MonoBehaviour
 
         public void Do(bool continuous, FrameData hit, FrameData hurt = null)
         {
+            if (gos.Count >= maxSpawns && maxSpawns >= 0)
+                return;
+
             Vector3 pos = SortVectors.GetCorrectVector(positionType, positionFlatten, position,
                 hit.transform, hit.rigidbody.transform, hurt.transform, hurt.rigidbody.transform, 
                 SortVectors.VectorType.Position);
@@ -103,6 +110,7 @@ public class FrameData : MonoBehaviour
                 SortVectors.VectorType.Rotation);
 
             GameObject go = Instantiate(spawnPrefab, pos, Quaternion.Euler(rot)) as GameObject;
+            gos.Add(go);
             HitBox _hit = go.GetComponent<HitBox>();
             _hit.exclude.Add(hit.mo);
             HurtBox _hurt = go.GetComponent<HurtBox>();
