@@ -44,10 +44,13 @@ public class Player : AnimatedMovingObject
             rigidbody.velocity = velRotation * rigidbody.velocity;
         }
     }
-    private bool tapForward = false;
-    private bool tapRight = false;
-    private bool tapBack = false;
-    private bool tapLeft = false;
+    [System.Serializable]
+    [System.Flags]
+    private enum TappedInputs
+    {
+        up = 1, right = 2, down = 4, left = 8, fire1 = 16, fire2 = 32, jump = 64
+    }
+    private TappedInputs tappedInputs = 0;
     public float tapExpire;
     private float _tapExpire = 0.0f;
     public override void NextAction()
@@ -57,10 +60,15 @@ public class Player : AnimatedMovingObject
             animator.SetBool("Left", false);
             animator.SetBool("Right", false);
 
-            tapForward = false;
-            tapLeft = false;
-            tapBack = false;
-            tapRight = false;
+            tappedInputs = 0;
+
+            animator.ResetTrigger("DashForward");
+            animator.ResetTrigger("DashRight");
+            animator.ResetTrigger("DashBack");
+            animator.ResetTrigger("DashLeft");
+            animator.ResetTrigger("LeftEdge");
+            animator.ResetTrigger("RightEdge");
+            animator.ResetTrigger("Jump");
 
             return;
         }
@@ -70,55 +78,71 @@ public class Player : AnimatedMovingObject
             animator.SetBool("Right", CrossPlatformInputManager.GetButton("Fire2"));
         }
 
-        
-
         if (CrossPlatformInputManager.GetButtonDown("Up"))
         {
-            if (!tapForward)
+            if ((tappedInputs & TappedInputs.up) == 0)
             {
-                tapForward = true;
+                tappedInputs |= TappedInputs.up;
                 _tapExpire = tapExpire;
             }
             else
+            {
                 animator.SetTrigger("DashForward");
+                tappedInputs = 0;
+            }
         }
         if (CrossPlatformInputManager.GetButtonDown("Right"))
         {
-            if (!tapRight)
+            if ((tappedInputs & TappedInputs.right) == 0)
             {
-                tapRight = true;
+                tappedInputs |= TappedInputs.right;
                 _tapExpire = tapExpire;
             }
             else
+            {
                 animator.SetTrigger("DashRight");
+                tappedInputs = 0;
+            }
         }
         if (CrossPlatformInputManager.GetButtonDown("Down"))
         {
-            if (!tapBack)
+            if ((tappedInputs & TappedInputs.down) == 0)
             {
-                tapBack = true;
+                tappedInputs |= TappedInputs.down;
                 _tapExpire = tapExpire;
             }
             else
+            {
                 animator.SetTrigger("DashBack");
+                tappedInputs = 0;
+            }
         }
         if (CrossPlatformInputManager.GetButtonDown("Left"))
         {
-            if (!tapLeft)
+            if ((tappedInputs & TappedInputs.left) == 0)
             {
-                tapLeft = true;
+                tappedInputs |= TappedInputs.left;
                 _tapExpire = tapExpire;
             }
             else
+            {
                 animator.SetTrigger("DashLeft");
+                tappedInputs = 0;
+            }
         }
+
+        if (GetGrounded())
+        {
+            if (CrossPlatformInputManager.GetButtonDown("Jump"))
+                animator.SetTrigger("Jump");
+        }
+        else
+            animator.ResetTrigger("Jump");
 
         if (CrossPlatformInputManager.GetButtonDown("Fire1"))
             animator.SetTrigger("LeftEdge");
         if (CrossPlatformInputManager.GetButtonDown("Fire2"))
             animator.SetTrigger("RightEdge");
-        if (CrossPlatformInputManager.GetButtonDown("Jump"))
-            animator.SetTrigger("Jump");
     }
 
     public Camera cam;
@@ -168,10 +192,7 @@ public class Player : AnimatedMovingObject
         //capture input strings
         if (Mathf.Approximately(_tapExpire, Mathf.Epsilon))
         {
-            tapForward = false;
-            tapLeft = false;
-            tapBack = false;
-            tapRight = false;
+            tappedInputs = 0;
         }
         else
         {
