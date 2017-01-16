@@ -104,15 +104,12 @@ public class MovingObject : MonoBehaviour
         CeilingStick = (int)0x0080,
         WallStick = (int)0x0100,
         Drag = (int)0x0200
-
-        //Physics = (int)(Rigidbody | Gravity | Collision),
-        //Input = (int)(Movement | Orientation | Action),
-        //MovingObject = (int)(GroundStick | CeilingStick | WallStick | Drag),
     }
     [HideInInspector]
     [EnumFlag("Blocking Mask")]
     public BlockingMask blockingMask;
-    public bool fixedBlockingMask;
+    [EnumFlag("Fixed Blocking Mask")]
+    public BlockingMask fixedBlockingMask;
     private BlockingMask defaultBlockingMask;
 
     //movement
@@ -445,8 +442,7 @@ public class MovingObject : MonoBehaviour
     }
     public virtual void FixedUpdate()
     {
-        if (fixedBlockingMask)
-            blockingMask = defaultBlockingMask;
+        blockingMask = (fixedBlockingMask & defaultBlockingMask) | (~fixedBlockingMask & blockingMask);
 
         rigidbody.isKinematic = (blockingMask & BlockingMask.Rigidbody) != 0;
         rigidbody.useGravity = (blockingMask & BlockingMask.Gravity) == 0;
