@@ -26,7 +26,7 @@ public class MovingObject : MonoBehaviour
     //functionality overrides
     public virtual Vector3 GetFocus()
     {
-        return transform.forward;
+        return root.forward;
     }
     public virtual Vector2 GetInput()
     {
@@ -34,7 +34,7 @@ public class MovingObject : MonoBehaviour
     }
     public virtual void RotateView()
     {
-        transform.rotation = Quaternion.LookRotation(GetFocus());
+        root.rotation = Quaternion.LookRotation(GetFocus());
     }
     public virtual void NextAction() { }
 
@@ -55,12 +55,8 @@ public class MovingObject : MonoBehaviour
     {
         return false;
     }
-    public virtual void SetWalled(bool _walled) { }
-    public virtual bool GetWalled()
-    {
-        return false;
-    }
-    public virtual void SetWallDirection(Vector3 _wallDirection) { SetWalled(_wallDirection != Vector3.zero); }
+    public virtual void Walled() { }
+    public virtual void SetWallDirection(Vector3 _wallDirection) { if (_wallDirection != Vector3.zero && !m_PreviouslyWalled) Walled(); }
     public virtual Vector3 GetWallDirection()
     {
         return Vector3.zero;
@@ -96,22 +92,25 @@ public class MovingObject : MonoBehaviour
     [System.Flags]
     public enum BlockingMask
     {
-        Physics = Rigidbody | Gravity | Collision,
-        Rigidbody = 1,
-        Gravity = 2,
-        Collision = 4,
+        Rigidbody = (int)0x0001,
+        Gravity = (int)0x0002,
+        Collision = (int)0x0004,
 
-        Input = Movement | Orientation | Action,
-        Movement = 8,
-        Orientation = 16,
-        Action = 32,
+        Movement = (int)0x0008,
+        Orientation = (int)0x0010,
+        Action = (int)0x0020,
 
-        MovingObject = GroundStick,
-        GroundStick = 64,
-        CeilingStick = 128,
-        WallStick = 256
+        GroundStick = (int)0x0040,
+        CeilingStick = (int)0x0080,
+        WallStick = (int)0x0100,
+        Drag = (int)0x0200
+
+        //Physics = (int)(Rigidbody | Gravity | Collision),
+        //Input = (int)(Movement | Orientation | Action),
+        //MovingObject = (int)(GroundStick | CeilingStick | WallStick | Drag),
     }
     [HideInInspector]
+    [EnumFlag("Blocking Mask")]
     public BlockingMask blockingMask;
     public bool fixedBlockingMask;
     private BlockingMask defaultBlockingMask;
@@ -188,7 +187,7 @@ public class MovingObject : MonoBehaviour
         //record previous ground state
         m_PreviouslyGrounded = GetGrounded();
         m_PreviouslyCapped = GetCapped();
-        m_PreviouslyWalled = GetWalled();
+        m_PreviouslyWalled = GetWallDirection() != Vector3.zero;
 
         //variables
         Vector3 extents = collider.bounds.extents;
@@ -256,7 +255,7 @@ public class MovingObject : MonoBehaviour
                 break;
         }
 
-        SetWallDirection(wallDir);
+        SetWallDirection(root.TransformDirection(wallDir));
     }
 
     //grab functions
@@ -286,9 +285,9 @@ public class MovingObject : MonoBehaviour
             Vector3 position = (Quaternion.LookRotation(GetFocus()) * grabOffset);
             if (invertXOffset)
                 position = new Vector3(-1 * position.x, position.y, position.z);
-            position += transform.position;
+            position += root.position;
             other.rigidbody.MovePosition(position);
-            Vector3 faceDir = (transform.position - other.rigidbody.position).normalized;
+            Vector3 faceDir = (root.position - other.rigidbody.position).normalized;
             other.rigidbody.MoveRotation(Quaternion.LookRotation(faceDir));
 
             yield return null;
@@ -402,15 +401,22 @@ public class MovingObject : MonoBehaviour
 	}
     private Vector2 input = Vector2.zero;
 
+    public Transform root;
+
     //monobehaviour functions
     public virtual void Awake()
     {
+        defaultBlockingMask = blockingMask;
+
         if (rigidbody.isKinematic)
             defaultBlockingMask |= BlockingMask.Rigidbody;
         if (!rigidbody.useGravity)
             defaultBlockingMask |= BlockingMask.Gravity;
         if (collider.isTrigger)
             defaultBlockingMask |= BlockingMask.Collision;
+
+        if (root == null)
+            root = transform;
     }
 	public virtual void Start ()
     {
@@ -442,20 +448,9 @@ public class MovingObject : MonoBehaviour
         if (fixedBlockingMask)
             blockingMask = defaultBlockingMask;
 
-        if ((blockingMask & BlockingMask.Rigidbody) != 0 && !rigidbody.isKinematic)
-            rigidbody.isKinematic = true;
-        else if ((blockingMask & BlockingMask.Rigidbody) == 0 && rigidbody.isKinematic)
-            rigidbody.isKinematic = false;
-
-        if ((blockingMask & BlockingMask.Gravity) != 0 && rigidbody.useGravity)
-            rigidbody.useGravity = false;
-        else if ((blockingMask & BlockingMask.Gravity) == 0 && !rigidbody.useGravity)
-            rigidbody.useGravity = true;
- 
-        if ((blockingMask & BlockingMask.Collision) != 0 && !collider.isTrigger)
-            collider.isTrigger = true;
-        else if ((blockingMask & BlockingMask.Collision) == 0 && collider.isTrigger)
-            collider.isTrigger = false;
+        rigidbody.isKinematic = (blockingMask & BlockingMask.Rigidbody) != 0;
+        rigidbody.useGravity = (blockingMask & BlockingMask.Gravity) == 0;
+        collider.isTrigger = (blockingMask & BlockingMask.Collision) != 0;
 
         GroundCheck();
 
@@ -474,7 +469,7 @@ public class MovingObject : MonoBehaviour
             }
         }
 
-        if(GetGrounded() || GetCapped() || GetWalled())
+        if((advancedSettings.airControl || GetGrounded() || GetCapped() || GetWallDirection() != Vector3.zero) && (blockingMask & BlockingMask.Drag) == 0)
         {
             rigidbody.drag = 5f;
             if (Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && rigidbody.velocity.magnitude < 1f)
@@ -505,7 +500,7 @@ public class MovingObject : MonoBehaviour
 
         }
 
-        if (GetWalled())
+        if (GetWallDirection() != Vector3.zero)
         {
 
         }

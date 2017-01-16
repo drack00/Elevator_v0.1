@@ -36,8 +36,7 @@ public class Enemy : AnimatedMovingObject
             return;
 
         Quaternion rotation = ai.orientation.desiredRotation;
-        if (restrictRotation)
-            rotation = Quaternion.Euler(0.0f, rotation.eulerAngles.y, 0.0f);
+        rotation = Quaternion.Euler(0.0f, rotation.eulerAngles.y, 0.0f);
         root.rotation = rotation;
     }
     public override void NextAction()
@@ -47,9 +46,6 @@ public class Enemy : AnimatedMovingObject
 
         animator.SetTrigger(ai.action.action);
     }
-
-    public Transform root;
-    public bool restrictRotation;
 
     public override void Awake()
     {

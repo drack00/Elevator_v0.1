@@ -40,13 +40,9 @@ public class AnimatedMovingObject : MovingObject
     {
         return animator.GetBool("Capped");
     }
-    public override void SetWalled(bool _walled)
+    public override void Walled()
     {
-        animator.SetBool("Walled", _walled);
-    }
-    public override bool GetWalled()
-    {
-        return animator.GetBool("Walled");
+        animator.SetTrigger("Walled");
     }
     public override void SetWallDirection(Vector3 _wallDirection)
     {
