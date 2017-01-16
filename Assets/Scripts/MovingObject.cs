@@ -55,8 +55,7 @@ public class MovingObject : MonoBehaviour
     {
         return false;
     }
-    public virtual void Walled() { }
-    public virtual void SetWallDirection(Vector3 _wallDirection) { if (_wallDirection != Vector3.zero && !m_PreviouslyWalled) Walled(); }
+    public virtual void SetWallDirection(Vector3 _wallDirection) { if (_wallDirection != Vector3.zero && !m_PreviouslyWalled) Clash(); }
     public virtual Vector3 GetWallDirection()
     {
         return Vector3.zero;
