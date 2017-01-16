@@ -50,6 +50,21 @@ public class MovingObject : MonoBehaviour
     {
         return false;
     }
+    public virtual void SetCapped(bool _capped) { }
+    public virtual bool GetCapped()
+    {
+        return false;
+    }
+    public virtual void SetWalled(bool _walled) { }
+    public virtual bool GetWalled()
+    {
+        return false;
+    }
+    public virtual void SetWallDirection(Vector3 _wallDirection) { SetWalled(_wallDirection != Vector3.zero); }
+    public virtual Vector3 GetWallDirection()
+    {
+        return Vector3.zero;
+    }
     public virtual void SetGrab(bool _grab) { }
     public virtual bool GetGrab()
     {
@@ -92,7 +107,9 @@ public class MovingObject : MonoBehaviour
         Action = 32,
 
         MovingObject = GroundStick,
-        GroundStick = 64
+        GroundStick = 64,
+        CeilingStick = 128,
+        WallStick = 256
     }
     [HideInInspector]
     public BlockingMask blockingMask;
@@ -143,7 +160,7 @@ public class MovingObject : MonoBehaviour
     public AdvancedSettings advancedSettings = new AdvancedSettings();
     private float m_YRotation;
     private Vector3 m_GroundContactNormal;
-    private bool m_PreviouslyGrounded;
+    private bool m_PreviouslyGrounded, m_PreviouslyCapped, m_PreviouslyWalled;
     private float SlopeMultiplier()
     {
         float angle = Vector3.Angle(m_GroundContactNormal, Vector3.up);
@@ -165,14 +182,21 @@ public class MovingObject : MonoBehaviour
             }
         }
     }
+    private float wallCheckSmoothing = 0.2f;
     private void GroundCheck()
     {
+        //record previous ground state
         m_PreviouslyGrounded = GetGrounded();
+        m_PreviouslyCapped = GetCapped();
+        m_PreviouslyWalled = GetWalled();
 
+        //variables
         Vector3 extents = collider.bounds.extents;
         float height = extents.y;
         extents = new Vector3(extents.x, 0.0f, extents.z);
         RaycastHit hitInfo;
+
+        //floor check
         if (Physics.SphereCast(transform.position, extents.magnitude, Vector3.down, out hitInfo,
                                (height - extents.magnitude) + 
                                advancedSettings.groundCheckDistance))
@@ -185,6 +209,54 @@ public class MovingObject : MonoBehaviour
             SetGrounded(false);
             m_GroundContactNormal = Vector3.up;
         }
+
+        //ceiling check
+        if (Physics.SphereCast(transform.position, extents.magnitude, Vector3.up, out hitInfo,
+                               (height - extents.magnitude) +
+                               advancedSettings.groundCheckDistance))
+        {
+            SetCapped(true);
+        }
+        else
+        {
+            SetCapped(false);
+        }
+
+        //iterate through cardinal directions
+        Vector3 wallDir = Vector3.zero;
+        Vector3 testDir = Vector3.right;
+        Vector3[] startDirs = { Vector3.right, Vector3.forward, -1 * Vector3.right, -1 * Vector3.forward };
+        for (int i = 0; i < startDirs.Length; i++)
+        {
+            //find start direction
+            Vector3 startDir = startDirs[i];
+
+            //find target direction
+            Vector3 targetDir = i < startDirs.Length - 1 ? startDirs[i + 1] : startDirs[0];
+
+            //step through all wall checks allowed by smoothing between start and target 
+            float _wallCheckSmoothing = 0.0f;
+            while (wallDir == Vector3.zero && _wallCheckSmoothing < 1.0f)
+            {
+                //new test direction is the current step between start and target
+                testDir = Vector3.Lerp(startDir, targetDir, _wallCheckSmoothing);
+
+                //wall check at test direction, break if it succeeds
+                if (Physics.SphereCast(transform.position, extents.magnitude, testDir, out hitInfo,
+                                       (height - extents.magnitude) +
+                                       advancedSettings.groundCheckDistance))
+                    wallDir = testDir;
+
+                //next wall smoothing step
+                _wallCheckSmoothing += wallCheckSmoothing;
+            }
+
+            //break loop if wall check succeeds
+            if (wallDir != Vector3.zero)
+                break;
+        }
+
+        SetWallDirection(wallDir);
     }
 
     //grab functions
@@ -230,6 +302,15 @@ public class MovingObject : MonoBehaviour
     }
 
     //character stats
+    public virtual void Dead()
+    {
+        isGrabbing = false;
+        stopGrabbing = false;
+        blockingMask = defaultBlockingMask;
+        ResetStun();
+
+        gameObject.SetActive(false);
+    }
     private bool _alive;
 	public bool alive
     {
@@ -252,15 +333,6 @@ public class MovingObject : MonoBehaviour
         ResetStun();
 
         alive = false;
-    }
-    public virtual void Dead ()
-    {
-        isGrabbing = false;
-        stopGrabbing = false;
-        blockingMask = defaultBlockingMask;
-        ResetStun();
-
-        gameObject.SetActive(false);
     }
 	public float maxHealth;
 	private float _health;
@@ -402,10 +474,9 @@ public class MovingObject : MonoBehaviour
             }
         }
 
-        if (GetGrounded())
+        if(GetGrounded() || GetCapped() || GetWalled())
         {
             rigidbody.drag = 5f;
-
             if (Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && rigidbody.velocity.magnitude < 1f)
             {
                 rigidbody.Sleep();
@@ -414,10 +485,33 @@ public class MovingObject : MonoBehaviour
         else
         {
             rigidbody.drag = 0f;
-            if ((blockingMask & BlockingMask.GroundStick) == 0 && m_PreviouslyGrounded)
-            {
-                StickToGroundHelper();
-            }
+        }
+
+        if (GetGrounded())
+        {
+
+        }
+        else if ((blockingMask & BlockingMask.GroundStick) == 0 && m_PreviouslyGrounded)
+        {
+            StickToGroundHelper();
+        }
+
+        if (GetCapped())
+        {
+
+        }
+        else if ((blockingMask & BlockingMask.CeilingStick) == 0 && m_PreviouslyCapped)
+        {
+
+        }
+
+        if (GetWalled())
+        {
+
+        }
+        else if ((blockingMask & BlockingMask.WallStick) == 0 && m_PreviouslyWalled)
+        {
+
         }
     }
 }

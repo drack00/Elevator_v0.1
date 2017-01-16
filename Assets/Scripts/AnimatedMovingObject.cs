@@ -32,6 +32,34 @@ public class AnimatedMovingObject : MovingObject
     {
         return animator.GetBool("Grounded");
     }
+    public override void SetCapped(bool _capped)
+    {
+        animator.SetBool("Capped", _capped);
+    }
+    public override bool GetCapped()
+    {
+        return animator.GetBool("Capped");
+    }
+    public override void SetWalled(bool _walled)
+    {
+        animator.SetBool("Walled", _walled);
+    }
+    public override bool GetWalled()
+    {
+        return animator.GetBool("Walled");
+    }
+    public override void SetWallDirection(Vector3 _wallDirection)
+    {
+        base.SetWallDirection(_wallDirection);
+
+        animator.SetFloat("Walled_X", _wallDirection.x);
+        animator.SetFloat("Walled_Y", _wallDirection.y);
+        animator.SetFloat("Walled_Z", _wallDirection.z);
+    }
+    public override Vector3 GetWallDirection()
+    {
+        return new Vector3(animator.GetFloat("Walled_X"), animator.GetFloat("Walled_Y"), animator.GetFloat("Walled_Z"));
+    }
     public override void SetGrab(bool _grab)
     {
         animator.SetBool("Grab", _grab);
