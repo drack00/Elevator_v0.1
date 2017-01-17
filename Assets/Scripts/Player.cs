@@ -51,7 +51,7 @@ public class Player : AnimatedMovingObject
         up = 1, right = 2, down = 4, left = 8, fire1 = 16, fire2 = 32, jump = 64
     }
     private TappedInputs tappedInputs = 0;
-    public float tapExpire;
+    private float tapExpire = 0.5f;
     private float _tapExpire = 0.0f;
     public override void NextAction()
     {
@@ -148,7 +148,7 @@ public class Player : AnimatedMovingObject
     public Camera cam;
     public MouseLook mouseLook = new MouseLook();
 
-    public Vector3[] moveSets;
+    private Vector3[] moveSets = { Vector3.zero, new Vector3(90.0f, 0.0f, 0.0f)};
 	private Vector3 _activeMoveSet;
 	public Vector3 activeMoveSet
     {
@@ -173,7 +173,7 @@ public class Player : AnimatedMovingObject
 	}
     public SyncPosition[] syncPositions;
 
-	public float swiftChangeMoveSetSpeed;
+	private float swiftChangeMoveSetSpeed = 10.0f;
 	private bool swiftChangeMoveSet = false;
 
     public override void Start ()

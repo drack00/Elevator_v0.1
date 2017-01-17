@@ -5,8 +5,8 @@ using System;
 
 public class HitBox : ActiveFrameData
 {
-    public bool invertedGrab;
     public LayerMask grabLayers;
+    public Vector3 grabOffset;
     public LayerMask targetLayers;
     public LayerMask clashLayers;
     public bool continuous;
@@ -65,7 +65,7 @@ public class HitBox : ActiveFrameData
 
         if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & grabLayers) != 0)
         {
-            mo.StartGrabbing(other.attachedRigidbody.GetComponent<MovingObject>(), invertedGrab);
+            mo.StartGrabbing(other.attachedRigidbody.GetComponent<MovingObject>(), grabOffset);
 
             return;
         }

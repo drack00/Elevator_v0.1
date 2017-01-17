@@ -2,6 +2,7 @@
 using System.Collections;
 using UnityStandardAssets.CrossPlatformInput;
 using UnityStandardAssets.Characters.FirstPerson;
+using UnityEngine.AI;
 
 [RequireComponent (typeof(Rigidbody))]
 [RequireComponent(typeof(Collider))]
@@ -55,7 +56,7 @@ public class MovingObject : MonoBehaviour
     {
         return false;
     }
-    public virtual void SetWallDirection(Vector3 _wallDirection) { if (_wallDirection != Vector3.zero && !m_PreviouslyWalled) Clash(); }
+    public virtual void SetWallDirection(Vector3 _wallDirection) { }
     public virtual Vector3 GetWallDirection()
     {
         return Vector3.zero;
@@ -155,7 +156,9 @@ public class MovingObject : MonoBehaviour
     public AdvancedSettings advancedSettings = new AdvancedSettings();
     private float m_YRotation;
     private Vector3 m_GroundContactNormal;
-    private bool m_PreviouslyGrounded, m_PreviouslyCapped, m_PreviouslyWalled;
+    private bool m_PreviouslyGrounded, m_PreviouslyCapped;
+    private Vector3 m_PreviousWallDirection;
+        private float wallCheckSmoothing = 0.2f;
     private float SlopeMultiplier()
     {
         float angle = Vector3.Angle(m_GroundContactNormal, Vector3.up);
@@ -177,13 +180,28 @@ public class MovingObject : MonoBehaviour
             }
         }
     }
-    private float wallCheckSmoothing = 0.2f;
+    private void StickToWallHelper()
+    {
+        Vector3 extents = collider.bounds.extents;
+        float height = extents.y;
+        extents = new Vector3(extents.x, 0.0f, extents.z);
+        RaycastHit hitInfo;
+        if (Physics.SphereCast(transform.position, extents.magnitude, root.InverseTransformDirection(m_PreviousWallDirection), out hitInfo,
+                               (height - extents.magnitude) +
+                               advancedSettings.stickToGroundHelperDistance))
+        {
+            if (Mathf.Abs(Vector3.Angle(hitInfo.normal, -1*root.InverseTransformDirection(m_PreviousWallDirection))) < 85f)
+            {
+                rigidbody.velocity = Vector3.ProjectOnPlane(rigidbody.velocity, hitInfo.normal);
+            }
+        }
+    }
     private void GroundCheck()
     {
         //record previous ground state
         m_PreviouslyGrounded = GetGrounded();
         m_PreviouslyCapped = GetCapped();
-        m_PreviouslyWalled = GetWallDirection() != Vector3.zero;
+        m_PreviousWallDirection = GetWallDirection();
 
         //variables
         Vector3 extents = collider.bounds.extents;
@@ -255,12 +273,11 @@ public class MovingObject : MonoBehaviour
     }
 
     //grab functions
-    public Vector3 grabOffset;
     private bool isGrabbing = false;
-    public void StartGrabbing(MovingObject other, bool invertXOffset = false)
+    public void StartGrabbing(MovingObject other, Vector3 grabOffset)
     {
         if (!isGrabbing)
-            StartCoroutine(Grab(other, invertXOffset));
+            StartCoroutine(Grab(other, grabOffset));
     }
     public void StopGrabbing()
     {
@@ -268,7 +285,7 @@ public class MovingObject : MonoBehaviour
             stopGrabbing = true;
     }
     private bool stopGrabbing = false;
-    public IEnumerator Grab(MovingObject other, bool invertXOffset = false)
+    public IEnumerator Grab(MovingObject other, Vector3 grabOffset)
     {
         isGrabbing = true;
 
@@ -279,8 +296,6 @@ public class MovingObject : MonoBehaviour
         while (!stopGrabbing)
         {
             Vector3 position = (Quaternion.LookRotation(GetFocus()) * grabOffset);
-            if (invertXOffset)
-                position = new Vector3(-1 * position.x, position.y, position.z);
             position += root.position;
             other.rigidbody.MovePosition(position);
             Vector3 faceDir = (root.position - other.rigidbody.position).normalized;
@@ -477,31 +492,17 @@ public class MovingObject : MonoBehaviour
             rigidbody.drag = 0f;
         }
 
-        if (GetGrounded())
-        {
-
-        }
-        else if ((blockingMask & BlockingMask.GroundStick) == 0 && m_PreviouslyGrounded)
+        if (!GetGrounded() && m_PreviouslyGrounded && (blockingMask & BlockingMask.GroundStick) == 0)
         {
             StickToGroundHelper();
         }
-
-        if (GetCapped())
+        if (!GetCapped() && m_PreviouslyCapped && (blockingMask & BlockingMask.CeilingStick) == 0)
         {
 
         }
-        else if ((blockingMask & BlockingMask.CeilingStick) == 0 && m_PreviouslyCapped)
+        if (GetWallDirection() == Vector3.zero && m_PreviousWallDirection != Vector3.zero && (blockingMask & BlockingMask.WallStick) == 0)
         {
-
-        }
-
-        if (GetWallDirection() != Vector3.zero)
-        {
-
-        }
-        else if ((blockingMask & BlockingMask.WallStick) == 0 && m_PreviouslyWalled)
-        {
-
+            StickToWallHelper();
         }
     }
 }
