@@ -180,23 +180,7 @@ public class MovingObject : MonoBehaviour
             }
         }
     }
-    private void StickToWallHelper()
-    {
-        Vector3 extents = collider.bounds.extents;
-        float height = extents.y;
-        extents = new Vector3(extents.x, 0.0f, extents.z);
-        RaycastHit hitInfo;
-        if (Physics.SphereCast(transform.position, extents.magnitude, root.InverseTransformDirection(m_PreviousWallDirection), out hitInfo,
-                               (height - extents.magnitude) +
-                               advancedSettings.stickToGroundHelperDistance))
-        {
-            if (Mathf.Abs(Vector3.Angle(hitInfo.normal, -1*root.InverseTransformDirection(m_PreviousWallDirection))) < 85f)
-            {
-                rigidbody.velocity = Vector3.ProjectOnPlane(rigidbody.velocity, hitInfo.normal);
-            }
-        }
-    }
-    private void GroundCheck()
+    private void CollisionChecks()
     {
         //record previous ground state
         m_PreviouslyGrounded = GetGrounded();
@@ -235,10 +219,11 @@ public class MovingObject : MonoBehaviour
             SetCapped(false);
         }
 
-        //iterate through cardinal directions
-        Vector3 wallDir = Vector3.zero;
-        Vector3 testDir = Vector3.right;
-        Vector3[] startDirs = { Vector3.right, Vector3.forward, -1 * Vector3.right, -1 * Vector3.forward };
+        //wall check
+        //iterate clockwise through cardinal directions, find the first collision
+        Vector3[] startDirs = { transform.forward, transform.right, -1 * transform.forward, -1 * transform.right };
+        Vector3 testDir = startDirs[0];
+        Vector3 wallDir0 = Vector3.zero;
         for (int i = 0; i < startDirs.Length; i++)
         {
             //find start direction
@@ -249,27 +234,61 @@ public class MovingObject : MonoBehaviour
 
             //step through all wall checks allowed by smoothing between start and target 
             float _wallCheckSmoothing = 0.0f;
-            while (wallDir == Vector3.zero && _wallCheckSmoothing < 1.0f)
+            while (_wallCheckSmoothing < 1.0f)
             {
                 //new test direction is the current step between start and target
                 testDir = Vector3.Lerp(startDir, targetDir, _wallCheckSmoothing);
 
-                //wall check at test direction, break if it succeeds
+                //wall check at test direction
                 if (Physics.SphereCast(transform.position, extents.magnitude, testDir, out hitInfo,
-                                       (height - extents.magnitude) +
-                                       advancedSettings.groundCheckDistance))
-                    wallDir = testDir;
+                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance))
+                    wallDir0 = testDir;
+                //cast backwards for safety, exclude collisions with self
+                else if(Physics.SphereCast(transform.position + (testDir * ((height - extents.magnitude) + advancedSettings.groundCheckDistance)), extents.magnitude, -1 * testDir, out hitInfo,
+                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance) &&
+                                       hitInfo.collider.attachedRigidbody != rigidbody)
+                    wallDir0 = testDir;
 
                 //next wall smoothing step
                 _wallCheckSmoothing += wallCheckSmoothing;
             }
+        }
+        //second pass, find the first counter-clockwise wall collision
+        startDirs = new Vector3[] { transform.forward, -1 * transform.right, -1 * transform.forward, transform.right };
+        testDir = startDirs[0];
+        Vector3 wallDir1 = wallDir0;
+        for (int i = 0; i < startDirs.Length; i++)
+        {
+            //find start direction
+            Vector3 startDir = startDirs[i];
 
-            //break loop if wall check succeeds
-            if (wallDir != Vector3.zero)
-                break;
+            //find target direction
+            Vector3 targetDir = i < startDirs.Length - 1 ? startDirs[i + 1] : startDirs[0];
+
+            //step through all wall checks allowed by smoothing between start and target 
+            float _wallCheckSmoothing = 0.0f;
+            while (_wallCheckSmoothing < 1.0f)
+            {
+                //new test direction is the current step between start and target
+                testDir = Vector3.Lerp(startDir, targetDir, _wallCheckSmoothing);
+
+                //wall check at test direction
+                if (Physics.SphereCast(transform.position, extents.magnitude, testDir, out hitInfo,
+                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance))
+                    wallDir1 = testDir;
+                //cast backwards for safety, exclude collisions with self
+                else if (Physics.SphereCast(transform.position + (testDir * ((height - extents.magnitude) + advancedSettings.groundCheckDistance)), extents.magnitude, -1 * testDir, out hitInfo,
+                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance) &&
+                                       hitInfo.collider.attachedRigidbody != rigidbody)
+                    wallDir1 = testDir;
+
+                //next wall smoothing step
+                _wallCheckSmoothing += wallCheckSmoothing;
+            }
         }
 
-        SetWallDirection(root.TransformDirection(wallDir));
+        //take the average of both passes
+        SetWallDirection(transform.InverseTransformDirection(Vector3.Lerp(wallDir0, wallDir1, 0.5f)));
     }
 
     //grab functions
@@ -462,7 +481,7 @@ public class MovingObject : MonoBehaviour
         rigidbody.useGravity = (blockingMask & BlockingMask.Gravity) == 0;
         collider.isTrigger = (blockingMask & BlockingMask.Collision) != 0;
 
-        GroundCheck();
+        CollisionChecks();
 
         if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.airControl || GetGrounded()))
         {
@@ -502,7 +521,7 @@ public class MovingObject : MonoBehaviour
         }
         if (GetWallDirection() == Vector3.zero && m_PreviousWallDirection != Vector3.zero && (blockingMask & BlockingMask.WallStick) == 0)
         {
-            StickToWallHelper();
+
         }
     }
 }
