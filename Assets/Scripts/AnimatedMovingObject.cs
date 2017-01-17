@@ -92,4 +92,9 @@ public class AnimatedMovingObject : MovingObject
     {
         return animator.GetFloat("Stun");
     }
+
+    public virtual void ResetAnimator()
+    {
+        animator.ResetTrigger("Clash");
+    }
 }

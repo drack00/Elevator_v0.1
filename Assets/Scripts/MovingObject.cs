@@ -55,7 +55,7 @@ public class MovingObject : MonoBehaviour
     {
         return false;
     }
-    public virtual void SetWallDirection(Vector3 _wallDirection) { if (_wallDirection != Vector3.zero && !m_PreviouslyWalled) Clash(); }
+    public virtual void SetWallDirection(Vector3 _wallDirection) { }
     public virtual Vector3 GetWallDirection()
     {
         return Vector3.zero;
@@ -155,7 +155,9 @@ public class MovingObject : MonoBehaviour
     public AdvancedSettings advancedSettings = new AdvancedSettings();
     private float m_YRotation;
     private Vector3 m_GroundContactNormal;
-    private bool m_PreviouslyGrounded, m_PreviouslyCapped, m_PreviouslyWalled;
+    private bool m_PreviouslyGrounded, m_PreviouslyCapped;
+    private Vector3 m_PreviousWallDirection;
+    private float wallCheckSmoothing = 0.2f;
     private float SlopeMultiplier()
     {
         float angle = Vector3.Angle(m_GroundContactNormal, Vector3.up);
@@ -177,13 +179,25 @@ public class MovingObject : MonoBehaviour
             }
         }
     }
-    private float wallCheckSmoothing = 0.2f;
+    private void StickToWallHelper()
+    {
+        Vector3 extents = collider.bounds.extents;
+        float height = extents.y;
+        extents = new Vector3(extents.x, 0.0f, extents.z);
+        RaycastHit hitInfo;
+        if (Physics.SphereCast(transform.position, extents.magnitude, root.InverseTransformDirection(m_PreviousWallDirection), out hitInfo,
+                               (height - extents.magnitude) +
+                               advancedSettings.stickToGroundHelperDistance))
+        {
+            rigidbody.velocity = Vector3.ProjectOnPlane(rigidbody.velocity, hitInfo.normal);
+        }
+    }
     private void GroundCheck()
     {
         //record previous ground state
         m_PreviouslyGrounded = GetGrounded();
         m_PreviouslyCapped = GetCapped();
-        m_PreviouslyWalled = GetWallDirection() != Vector3.zero;
+        m_PreviousWallDirection = GetWallDirection();
 
         //variables
         Vector3 extents = collider.bounds.extents;
@@ -219,8 +233,8 @@ public class MovingObject : MonoBehaviour
 
         //iterate through cardinal directions
         Vector3 wallDir = Vector3.zero;
-        Vector3 testDir = Vector3.right;
         Vector3[] startDirs = { Vector3.right, Vector3.forward, -1 * Vector3.right, -1 * Vector3.forward };
+        Vector3 testDir = startDirs[0];
         for (int i = 0; i < startDirs.Length; i++)
         {
             //find start direction
@@ -240,7 +254,10 @@ public class MovingObject : MonoBehaviour
                 if (Physics.SphereCast(transform.position, extents.magnitude, testDir, out hitInfo,
                                        (height - extents.magnitude) +
                                        advancedSettings.groundCheckDistance))
+                {
                     wallDir = testDir;
+                    break;
+                }
 
                 //next wall smoothing step
                 _wallCheckSmoothing += wallCheckSmoothing;
@@ -477,31 +494,17 @@ public class MovingObject : MonoBehaviour
             rigidbody.drag = 0f;
         }
 
-        if (GetGrounded())
-        {
-
-        }
-        else if ((blockingMask & BlockingMask.GroundStick) == 0 && m_PreviouslyGrounded)
+        if (!GetGrounded() && m_PreviouslyGrounded && (blockingMask & BlockingMask.GroundStick) == 0)
         {
             StickToGroundHelper();
         }
-
-        if (GetCapped())
+        if (!GetCapped() && m_PreviouslyCapped && (blockingMask & BlockingMask.CeilingStick) == 0)
         {
 
         }
-        else if ((blockingMask & BlockingMask.CeilingStick) == 0 && m_PreviouslyCapped)
+        if (GetWallDirection() == Vector3.zero && m_PreviousWallDirection != Vector3.zero && (blockingMask & BlockingMask.WallStick) == 0)
         {
-
-        }
-
-        if (GetWallDirection() != Vector3.zero)
-        {
-
-        }
-        else if ((blockingMask & BlockingMask.WallStick) == 0 && m_PreviouslyWalled)
-        {
-
+            StickToWallHelper();
         }
     }
 }

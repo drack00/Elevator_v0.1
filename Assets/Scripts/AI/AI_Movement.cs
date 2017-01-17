@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.AI;
 
 [RequireComponent(typeof(NavMeshAgent))]
 public class AI_Movement : MonoBehaviour

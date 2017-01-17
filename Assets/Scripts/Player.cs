@@ -44,6 +44,23 @@ public class Player : AnimatedMovingObject
             rigidbody.velocity = velRotation * rigidbody.velocity;
         }
     }
+    public override void ResetAnimator()
+    {
+        base.ResetAnimator();
+
+        animator.SetBool("Left", false);
+        animator.SetBool("Right", false);
+
+        animator.ResetTrigger("DashForward");
+        animator.ResetTrigger("DashRight");
+        animator.ResetTrigger("DashBack");
+        animator.ResetTrigger("DashLeft");
+        animator.ResetTrigger("LeftEdge");
+        animator.ResetTrigger("RightEdge");
+        animator.ResetTrigger("Jump");
+
+        tappedInputs = 0;
+    }
     [System.Serializable]
     [System.Flags]
     private enum TappedInputs
@@ -57,25 +74,9 @@ public class Player : AnimatedMovingObject
     {
         if ((blockingMask & BlockingMask.Action) != 0)
         {
-            animator.SetBool("Left", false);
-            animator.SetBool("Right", false);
-
-            tappedInputs = 0;
-
-            animator.ResetTrigger("DashForward");
-            animator.ResetTrigger("DashRight");
-            animator.ResetTrigger("DashBack");
-            animator.ResetTrigger("DashLeft");
-            animator.ResetTrigger("LeftEdge");
-            animator.ResetTrigger("RightEdge");
-            animator.ResetTrigger("Jump");
+            ResetAnimator();
 
             return;
-        }
-        else
-        {
-            animator.SetBool("Left", CrossPlatformInputManager.GetButton("Fire1"));
-            animator.SetBool("Right", CrossPlatformInputManager.GetButton("Fire2"));
         }
 
         if (CrossPlatformInputManager.GetButtonDown("Up"))
@@ -143,6 +144,9 @@ public class Player : AnimatedMovingObject
             animator.SetTrigger("LeftEdge");
         if (CrossPlatformInputManager.GetButtonDown("Fire2"))
             animator.SetTrigger("RightEdge");
+
+        animator.SetBool("Left", CrossPlatformInputManager.GetButton("Fire1"));
+        animator.SetBool("Right", CrossPlatformInputManager.GetButton("Fire2"));
     }
 
     public Camera cam;
