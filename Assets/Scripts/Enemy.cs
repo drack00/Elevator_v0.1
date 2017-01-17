@@ -42,11 +42,7 @@ public class Enemy : AnimatedMovingObject
     public override void NextAction()
     {
         if ((blockingMask & BlockingMask.Action) != 0 || string.IsNullOrEmpty(ai.action.action))
-        {
-            ResetAnimator();
-
             return;
-        }
 
         animator.SetTrigger(ai.action.action);
     }
