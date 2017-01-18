@@ -288,7 +288,7 @@ public class MovingObject : MonoBehaviour
         }
 
         //take the average of both passes
-        SetWallDirection(transform.InverseTransformDirection(Vector3.Lerp(wallDir0, wallDir1, 0.5f)));
+        SetWallDirection(transform.InverseTransformDirection(Vector3.Lerp(wallDir0, wallDir1, 0.5f).normalized));
     }
 
     //grab functions
