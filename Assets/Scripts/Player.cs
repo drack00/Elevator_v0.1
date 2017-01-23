@@ -44,105 +44,30 @@ public class Player : AnimatedMovingObject
             rigidbody.velocity = velRotation * rigidbody.velocity;
         }
     }
-    [System.Serializable]
-    [System.Flags]
-    private enum TappedInputs
-    {
-        up = 1, right = 2, down = 4, left = 8, fire1 = 16, fire2 = 32, jump = 64
-    }
-    private TappedInputs tappedInputs = 0;
-    private float tapExpire = 0.5f;
-    private float _tapExpire = 0.0f;
     public override void NextAction()
     {
         if ((blockingMask & BlockingMask.Action) != 0)
         {
-            animator.SetBool("Left", false);
-            animator.SetBool("Right", false);
-
-            tappedInputs = 0;
-
-            animator.ResetTrigger("DashForward");
-            animator.ResetTrigger("DashRight");
-            animator.ResetTrigger("DashBack");
-            animator.ResetTrigger("DashLeft");
             animator.ResetTrigger("LeftEdge");
             animator.ResetTrigger("RightEdge");
+
             animator.ResetTrigger("Jump");
 
             return;
         }
-        else
-        {
-            animator.SetBool("Left", CrossPlatformInputManager.GetButton("Fire1"));
-            animator.SetBool("Right", CrossPlatformInputManager.GetButton("Fire2"));
-        }
-
-        if (CrossPlatformInputManager.GetButtonDown("Up"))
-        {
-            if ((tappedInputs & TappedInputs.up) == 0)
-            {
-                tappedInputs |= TappedInputs.up;
-                _tapExpire = tapExpire;
-            }
-            else
-            {
-                animator.SetTrigger("DashForward");
-                tappedInputs = 0;
-            }
-        }
-        if (CrossPlatformInputManager.GetButtonDown("Right"))
-        {
-            if ((tappedInputs & TappedInputs.right) == 0)
-            {
-                tappedInputs |= TappedInputs.right;
-                _tapExpire = tapExpire;
-            }
-            else
-            {
-                animator.SetTrigger("DashRight");
-                tappedInputs = 0;
-            }
-        }
-        if (CrossPlatformInputManager.GetButtonDown("Down"))
-        {
-            if ((tappedInputs & TappedInputs.down) == 0)
-            {
-                tappedInputs |= TappedInputs.down;
-                _tapExpire = tapExpire;
-            }
-            else
-            {
-                animator.SetTrigger("DashBack");
-                tappedInputs = 0;
-            }
-        }
-        if (CrossPlatformInputManager.GetButtonDown("Left"))
-        {
-            if ((tappedInputs & TappedInputs.left) == 0)
-            {
-                tappedInputs |= TappedInputs.left;
-                _tapExpire = tapExpire;
-            }
-            else
-            {
-                animator.SetTrigger("DashLeft");
-                tappedInputs = 0;
-            }
-        }
-
-        if (GetGrounded())
-        {
-            if (CrossPlatformInputManager.GetButtonDown("Jump"))
-                animator.SetTrigger("Jump");
-        }
-        else
-            animator.ResetTrigger("Jump");
 
         if (CrossPlatformInputManager.GetButtonDown("Fire1"))
             animator.SetTrigger("LeftEdge");
         if (CrossPlatformInputManager.GetButtonDown("Fire2"))
             animator.SetTrigger("RightEdge");
+
+        animator.SetBool("Left", CrossPlatformInputManager.GetButton("Fire1"));
+        animator.SetBool("Right", CrossPlatformInputManager.GetButton("Fire2"));
+
+        if (CrossPlatformInputManager.GetButtonDown("Jump"))
+            animator.SetTrigger("JumpEdge");
+
+        animator.SetBool("Jump", CrossPlatformInputManager.GetButton("Jump"));
     }
 
     public Camera cam;
@@ -188,19 +113,6 @@ public class Player : AnimatedMovingObject
     {
         //update base class
         base.Update ();
-
-        //capture input strings
-        if (Mathf.Approximately(_tapExpire, Mathf.Epsilon))
-        {
-            tappedInputs = 0;
-        }
-        else
-        {
-            _tapExpire -= Time.deltaTime;
-
-            if (_tapExpire < 0.0f)
-                _tapExpire = 0.0f;
-        }
 
         //swift change lerp, and slow change correction
         if (swiftChangeMoveSet)
