@@ -26,7 +26,9 @@ public class MiscBox : ActiveFrameData
     }
     public void Update ()
     {
-        if (!additive)
+        if (additive)
+            mo.blockingMask |= blockingMask;
+        else
             mo.blockingMask = blockingMask;
 
         updateBehaviour.Do(true, this);
