@@ -501,10 +501,6 @@ public class MovingObject : MonoBehaviour
         if((advancedSettings.airControl || GetGrounded() || GetCapped() || GetWallDirection() != Vector3.zero) && (blockingMask & BlockingMask.Drag) == 0)
         {
             rigidbody.drag = 5f;
-            if (Mathf.Abs(input.x) < float.Epsilon && Mathf.Abs(input.y) < float.Epsilon && rigidbody.velocity.magnitude < 1f)
-            {
-                rigidbody.Sleep();
-            }
         }
         else
         {
