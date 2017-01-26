@@ -15,7 +15,7 @@ public class UIGizmo : MonoBehaviour
             referenceTransform.TransformPoint(new Vector3(relativePosition.x, transform.position.y, relativePosition.z));
         transform.rotation = !restrictY ?
             referenceTransform.rotation * Quaternion.Euler(relativeRotation) :
-            referenceTransform.rotation * Quaternion.Euler(new Vector3(relativeRotation.x, transform.eulerAngles.y, relativeRotation.z));
+            referenceTransform.rotation * Quaternion.Euler(new Vector3(0f, relativeRotation.y, 0f));
     }
     private void Update ()
     {
@@ -24,6 +24,6 @@ public class UIGizmo : MonoBehaviour
             referenceTransform.TransformPoint(new Vector3(relativePosition.x, transform.position.y, relativePosition.z));
         transform.rotation = !restrictY ? 
             referenceTransform.rotation * Quaternion.Euler(relativeRotation) :
-            referenceTransform.rotation * Quaternion.Euler(new Vector3(relativeRotation.x, transform.eulerAngles.y, relativeRotation.z));
+            referenceTransform.rotation * Quaternion.Euler(new Vector3(0f, relativeRotation.y, 0f));
 	}
 }

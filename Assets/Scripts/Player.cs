@@ -34,25 +34,23 @@ public class Player : AnimatedMovingObject
     {
         if ((blockingMask & BlockingMask.Orientation) != 0)
         {
-            foreach (UIGizmo gizmo in moveSets[0].gizmos)
+            foreach(MoveSet moveSet in moveSets)
             {
-                gizmo.enabled = false;
-            }
-            foreach (UIGizmo gizmo in moveSets[1].gizmos)
-            {
-                gizmo.enabled = false;
+                foreach (UIGizmo gizmo in moveSet.gizmos)
+                {
+                    gizmo.enabled = false;
+                }
             }
 
             return;
         }
 
-        foreach(UIGizmo gizmo in moveSets[0].gizmos)
+        foreach (MoveSet moveSet in moveSets)
         {
-            gizmo.enabled = true;
-        }
-        foreach (UIGizmo gizmo in moveSets[1].gizmos)
-        {
-            gizmo.enabled = true;
+            foreach (UIGizmo gizmo in moveSet.gizmos)
+            {
+                gizmo.enabled = true;
+            }
         }
     }
     public override void NextAction()
@@ -136,25 +134,24 @@ public class Player : AnimatedMovingObject
 			activeMoveSet = activeMoveSet;
 
         //align ui gizmos
-        foreach (UIGizmo gizmo in moveSets[0].gizmos)
+        foreach (MoveSet moveSet in moveSets)
         {
-            gizmo.restrictY = !(activeMoveSet == moveSets[0]);
-        }
-        foreach (UIGizmo gizmo in moveSets[1].gizmos)
-        {
-            gizmo.restrictY = !(activeMoveSet == moveSets[1]/* && !GetGrounded()*/);
+            foreach (UIGizmo gizmo in moveSet.gizmos)
+            {
+                gizmo.restrictY = activeMoveSet != moveSet;
+            }
         }
 
         //mouse wheel
+        if (CrossPlatformInputManager.GetAxis("Mouse ScrollWheel") > 0.0f)
+        {
+            swiftChangeMoveSet = true;
+            activeMoveSet = moveSets[0];
+        }
         if (CrossPlatformInputManager.GetAxis ("Mouse ScrollWheel") < 0.0f)
         {
 			swiftChangeMoveSet = true;
 			activeMoveSet = moveSets [1];
-		}
-		if (CrossPlatformInputManager.GetAxis ("Mouse ScrollWheel") > 0.0f)
-        {
-			swiftChangeMoveSet = true;
-			activeMoveSet = moveSets [0];
 		}
 	}
     public override void FixedUpdate()

@@ -4,19 +4,19 @@ using System.Collections.Generic;
 
 public static class MathStuff
 {
-    //
+    //used for super smooth lerp
     public static Vector3 SuperSmoothLerp(Vector3 followStart, Vector3 targetStart, Vector3 newTarget, float time, float speed)
     {
         Vector3 newFollow = followStart - targetStart + (newTarget - targetStart) / (speed * time);
         return newTarget - (newTarget - targetStart) / (speed * time) + newFollow * Mathf.Exp(-speed * time);
     }
 
-    //
-	public static Transform GetClosestTransform (Vector3 reference, Transform[] transforms)
+    //sort arrays of stuff based on their similarity to a reference
+    public static Transform GetClosestTransform (Vector3 reference, Transform[] transforms)
     {
         return transforms[GetClosestTransformIndex(reference, transforms)];
 	}
-    public static int GetClosestTransformIndex (Vector3 reference, Transform[] transforms) 
+    public static int GetClosestTransformIndex (Vector3 reference, Transform[] transforms)
     {
         int tMinIndex = 0;
         float minDist = Mathf.Infinity;
@@ -93,7 +93,7 @@ public static class MathStuff
 		return tMinIndex;
 	}
 
-    //
+    //stuff for finding different angles
 	public static float SignedAngleBetween (Vector2 a, Vector2 b)
 	{
 		float angle = Vector2.Angle (a, b);
