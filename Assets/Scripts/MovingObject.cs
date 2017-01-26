@@ -485,7 +485,7 @@ public class MovingObject : MonoBehaviour
 
         if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.airControl || GetGrounded()))
         {
-            Vector3 desiredMove = transform.forward * input.y + transform.right * input.x;
+            Vector3 desiredMove = GetFocus() * input.y + (Quaternion.Euler(0.0f, 90.0f, 0.0f) * GetFocus()) * input.x;
             desiredMove = Vector3.ProjectOnPlane(desiredMove, m_GroundContactNormal).normalized;
 
             desiredMove.x = desiredMove.x * movementSettings.CurrentTargetSpeed;

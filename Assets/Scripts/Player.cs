@@ -26,22 +26,26 @@ public class Player : AnimatedMovingObject
     public override void RotateView()
     {
         if ((blockingMask & BlockingMask.Orientation) != 0)
-            return;
-
-        //avoids the mouse looking if the game is effectively paused
-        if (Mathf.Abs(Time.timeScale) < float.Epsilon) return;
-
-        // get the rotation before it's changed
-        float oldYRotation = transform.eulerAngles.y;
-
-        //look rotation
-        mouseLook.LookRotation(transform, cam.transform);
-
-        if (GetGrounded() || advancedSettings.airControl)
         {
-            // Rotate the rigidbody velocity to match the new direction that the character is looking
-            Quaternion velRotation = Quaternion.AngleAxis(transform.eulerAngles.y - oldYRotation, Vector3.up);
-            rigidbody.velocity = velRotation * rigidbody.velocity;
+            foreach (UIGizmo gizmo in permanentGizmos)
+            {
+                gizmo.enabled = false;
+            }
+            foreach (UIGizmo gizmo in temporaryGizmos)
+            {
+                gizmo.enabled = false;
+            }
+
+            return;
+        }
+
+        foreach(UIGizmo gizmo in permanentGizmos)
+        {
+            gizmo.enabled = true;
+        }
+        foreach (UIGizmo gizmo in temporaryGizmos)
+        {
+            gizmo.enabled = true;
         }
     }
     public override void NextAction()
@@ -96,14 +100,15 @@ public class Player : AnimatedMovingObject
 				animator.SetInteger ("ActiveMoveSet", 1);
 		}
 	}
-    public SyncPosition[] syncPositions;
+    public UIGizmo[] permanentGizmos;
+    public UIGizmo[] temporaryGizmos;
 
-	private float swiftChangeMoveSetSpeed = 10.0f;
+    private float swiftChangeMoveSetSpeed = 10.0f;
 	private bool swiftChangeMoveSet = false;
 
     public override void Start ()
     {
-        mouseLook.Init(transform, cam.transform);
+        mouseLook.Init(cam.transform);
 
         activeMoveSet = moveSets[0];
 
@@ -118,17 +123,21 @@ public class Player : AnimatedMovingObject
         if (swiftChangeMoveSet)
         {
 			cam.transform.localRotation = Quaternion.Lerp (cam.transform.localRotation, Quaternion.Euler (_activeMoveSet), swiftChangeMoveSetSpeed * Time.deltaTime);
-			mouseLook.Init (transform, cam.transform);
+			mouseLook.Init (cam.transform);
 			if (cam.transform.localRotation == Quaternion.Euler (_activeMoveSet))
 				swiftChangeMoveSet = false;
 		}
         else if (_activeMoveSet != activeMoveSet)
 			activeMoveSet = activeMoveSet;
 
-		//align ui gizmos
-        foreach(SyncPosition syncPos in syncPositions)
+        //align ui gizmos
+        foreach (UIGizmo gizmo in permanentGizmos)
         {
-            syncPos.enabled = activeMoveSet == moveSets[1] && !GetGrounded();
+            gizmo.restrictY = !(activeMoveSet == moveSets[0]);
+        }
+        foreach (UIGizmo gizmo in temporaryGizmos)
+        {
+            gizmo.restrictY = !(activeMoveSet == moveSets[1]/* && !GetGrounded()*/);
         }
 
         //mouse wheel
@@ -143,4 +152,24 @@ public class Player : AnimatedMovingObject
 			activeMoveSet = moveSets [0];
 		}
 	}
+    public override void FixedUpdate()
+    {
+        //avoids the mouse looking if the game is effectively paused
+        if (Mathf.Abs(Time.timeScale) < float.Epsilon) return;
+
+        // get the rotation before it's changed
+        //float oldYRotation = transform.eulerAngles.y;
+
+        //look rotation
+        mouseLook.LookRotation(cam.transform);
+
+        /*if (GetGrounded() || advancedSettings.airControl)
+        {
+            // Rotate the rigidbody velocity to match the new direction that the character is looking
+            Quaternion velRotation = Quaternion.AngleAxis(transform.eulerAngles.y - oldYRotation, Vector3.up);
+            rigidbody.velocity = velRotation * rigidbody.velocity;
+        }*/
+
+        base.FixedUpdate();
+    }
 }
