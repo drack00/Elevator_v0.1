@@ -4,68 +4,96 @@ using System.Collections.Generic;
 
 public static class MathStuff
 {
-
+    //
     public static Vector3 SuperSmoothLerp(Vector3 followStart, Vector3 targetStart, Vector3 newTarget, float time, float speed)
     {
         Vector3 newFollow = followStart - targetStart + (newTarget - targetStart) / (speed * time);
         return newTarget - (newTarget - targetStart) / (speed * time) + newFollow * Mathf.Exp(-speed * time);
     }
 
-	public static Transform GetClosestTransform (Vector3 reference, Transform[] transforms){
-		Transform tMin = null;
+    //
+	public static Transform GetClosestTransform (Vector3 reference, Transform[] transforms)
+    {
+        return transforms[GetClosestTransformIndex(reference, transforms)];
+	}
+    public static int GetClosestTransformIndex (Vector3 reference, Transform[] transforms) 
+    {
+        int tMinIndex = 0;
+        float minDist = Mathf.Infinity;
+        for (int i = 0; i < transforms.Length; i++)
+        {
+            Transform transform = transforms[i];
+            float dist = Vector3.Distance(reference, transform.position);
+            if (dist < minDist)
+            {
+                tMinIndex = i;
+                minDist = dist;
+            }
+        }
+        return tMinIndex;
+    }
+    public static Vector3 GetClosestPosition (Vector3 reference, Vector3[] positions)
+    {
+        return positions[GetClosestPositionIndex(reference, positions)];
+	}
+    public static int GetClosestPositionIndex(Vector3 reference, Vector3[] positions)
+    {
+        int tMinIndex = 0;
+        float minDist = Mathf.Infinity;
+        for (int i = 0; i < positions.Length; i++)
+        {
+            Vector3 position = positions[i];
+            float dist = Vector3.Distance(reference, position);
+            if (dist < minDist)
+            {
+                tMinIndex = i;
+                minDist = dist;
+            }
+        }
+        return tMinIndex;
+    }
+    public static Transform GetClosestTransform (Quaternion reference, Transform[] transforms)
+    {
+        return transforms[GetClosestTransformIndex(reference, transforms)];
+	}
+    public static int GetClosestTransformIndex(Quaternion reference, Transform[] transforms)
+    {
+        int tMinIndex = 0;
+        float minDist = Mathf.Infinity;
+        for (int i = 0; i < transforms.Length; i++)
+        {
+            Transform transform = transforms[i];
+            float dist = Quaternion.Angle(reference, transform.rotation);
+            if (dist < minDist)
+            {
+                tMinIndex = i;
+                minDist = dist;
+            }
+        }
+        return tMinIndex;
+    }
+    public static Quaternion GetClosestRotation(Quaternion reference, Quaternion[] rotations)
+    {
+        return rotations[GetClosestRotationIndex(reference, rotations)];
+    }
+    public static int GetClosestRotationIndex (Quaternion reference, Quaternion[] rotations)
+    {
+		int tMinIndex = 0;
 		float minDist = Mathf.Infinity;
-		foreach (Transform transform in transforms) {
-			float dist = Vector3.Distance (reference, transform.position);
-			if (dist < minDist) {
-				tMin = transform;
+		for (int i = 0; i < rotations.Length; i++)
+        {
+            Quaternion rotation = rotations[i];
+            float dist = Quaternion.Angle (reference, rotation);
+			if (dist < minDist)
+            {
+                tMinIndex = i;
 				minDist = dist;
 			}
 		}
-		return tMin;
+		return tMinIndex;
 	}
-	public static Vector3 GetClosestPosition (Vector3 reference, Vector3[] positions) {
-		Vector3 tMin = Vector3.zero;
-		float minDist = Mathf.Infinity;
-		foreach (Vector3 position in positions) {
-			float dist = Vector3.Distance (reference, position);
-			if (dist < minDist) {
-				tMin = position;
-				minDist = dist;
-			}
-		}
-		return tMin;
-	}
-	public static Transform GetClosestTransform (Quaternion reference, Transform[] transforms){
-		Transform tMin = null;
-		float minDist = Mathf.Infinity;
-		foreach (Transform transform in transforms) {
-			float dist = Quaternion.Angle (reference, transform.rotation);
-			if (dist < minDist) {
-				tMin = transform;
-				minDist = dist;
-			}
-		}
-		return tMin;
-	}
-	public static Vector3 GetClosestRotation (Quaternion reference, Vector3[] rotations) {
-		Quaternion[] _rotations = new Quaternion[rotations.Length];
-		for (int i = 0; i < _rotations.Length; i++) {
-			_rotations [i] = Quaternion.Euler (rotations [i]);
-		}
-		return (GetClosestRotation (reference, _rotations)).eulerAngles;
-	}
-	public static Quaternion GetClosestRotation (Quaternion reference, Quaternion[] rotations) {
-		Quaternion tMin = Quaternion.identity;
-		float minDist = Mathf.Infinity;
-		foreach (Quaternion rotation in rotations) {
-			float dist = Quaternion.Angle (reference, rotation);
-			if (dist < minDist) {
-				tMin = rotation;
-				minDist = dist;
-			}
-		}
-		return tMin;
-	}
+
+    //
 	public static float SignedAngleBetween (Vector2 a, Vector2 b)
 	{
 		float angle = Vector2.Angle (a, b);

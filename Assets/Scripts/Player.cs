@@ -5,6 +5,13 @@ using UnityStandardAssets.CrossPlatformInput;
 
 public class Player : AnimatedMovingObject
 {
+    [System.Serializable]
+    public class MoveSet
+    {
+        public Vector3 rotation;
+        public UIGizmo[] gizmos;
+    }
+
     public override Vector3 GetFocus()
     {
         return cam.transform.forward; ;
@@ -27,11 +34,11 @@ public class Player : AnimatedMovingObject
     {
         if ((blockingMask & BlockingMask.Orientation) != 0)
         {
-            foreach (UIGizmo gizmo in permanentGizmos)
+            foreach (UIGizmo gizmo in moveSets[0].gizmos)
             {
                 gizmo.enabled = false;
             }
-            foreach (UIGizmo gizmo in temporaryGizmos)
+            foreach (UIGizmo gizmo in moveSets[1].gizmos)
             {
                 gizmo.enabled = false;
             }
@@ -39,11 +46,11 @@ public class Player : AnimatedMovingObject
             return;
         }
 
-        foreach(UIGizmo gizmo in permanentGizmos)
+        foreach(UIGizmo gizmo in moveSets[0].gizmos)
         {
             gizmo.enabled = true;
         }
-        foreach (UIGizmo gizmo in temporaryGizmos)
+        foreach (UIGizmo gizmo in moveSets[1].gizmos)
         {
             gizmo.enabled = true;
         }
@@ -77,18 +84,18 @@ public class Player : AnimatedMovingObject
     public Camera cam;
     public MouseLook mouseLook = new MouseLook();
 
-    private Vector3[] moveSets = { Vector3.zero, new Vector3(90.0f, 0.0f, 0.0f)};
-	private Vector3 _activeMoveSet;
-	public Vector3 activeMoveSet
+    public MoveSet[] moveSets;
+	private MoveSet _activeMoveSet;
+	public MoveSet activeMoveSet
     {
 		get
         {
-			Vector3[] _moveSets = new Vector3[moveSets.Length];
+			Quaternion[] _moveSets = new Quaternion[moveSets.Length];
 			for (int i = 0; i < _moveSets.Length; i++)
             {
-				_moveSets [i] = moveSets [i];
+				_moveSets [i] = Quaternion.Euler(moveSets [i].rotation);
 			}
-			return (MathStuff.GetClosestRotation (cam.transform.localRotation, _moveSets));
+			return moveSets[(MathStuff.GetClosestRotationIndex (cam.transform.localRotation, _moveSets))];
 		}
 		set
         {
@@ -100,8 +107,6 @@ public class Player : AnimatedMovingObject
 				animator.SetInteger ("ActiveMoveSet", 1);
 		}
 	}
-    public UIGizmo[] permanentGizmos;
-    public UIGizmo[] temporaryGizmos;
 
     private float swiftChangeMoveSetSpeed = 10.0f;
 	private bool swiftChangeMoveSet = false;
@@ -122,20 +127,20 @@ public class Player : AnimatedMovingObject
         //swift change lerp, and slow change correction
         if (swiftChangeMoveSet)
         {
-			cam.transform.localRotation = Quaternion.Lerp (cam.transform.localRotation, Quaternion.Euler (_activeMoveSet), swiftChangeMoveSetSpeed * Time.deltaTime);
+			cam.transform.localRotation = Quaternion.Lerp (cam.transform.localRotation, Quaternion.Euler (_activeMoveSet.rotation), swiftChangeMoveSetSpeed * Time.deltaTime);
 			mouseLook.Init (cam.transform);
-			if (cam.transform.localRotation == Quaternion.Euler (_activeMoveSet))
+			if (cam.transform.localRotation == Quaternion.Euler (_activeMoveSet.rotation))
 				swiftChangeMoveSet = false;
 		}
         else if (_activeMoveSet != activeMoveSet)
 			activeMoveSet = activeMoveSet;
 
         //align ui gizmos
-        foreach (UIGizmo gizmo in permanentGizmos)
+        foreach (UIGizmo gizmo in moveSets[0].gizmos)
         {
             gizmo.restrictY = !(activeMoveSet == moveSets[0]);
         }
-        foreach (UIGizmo gizmo in temporaryGizmos)
+        foreach (UIGizmo gizmo in moveSets[1].gizmos)
         {
             gizmo.restrictY = !(activeMoveSet == moveSets[1]/* && !GetGrounded()*/);
         }
