@@ -8,7 +8,7 @@ public class Player : AnimatedMovingObject
     [System.Serializable]
     public class MoveSet
     {
-        public Vector3 rotation;
+        public float xRotation;
         public UIGizmo[] gizmos;
     }
 
@@ -91,7 +91,7 @@ public class Player : AnimatedMovingObject
 			Quaternion[] _moveSets = new Quaternion[moveSets.Length];
 			for (int i = 0; i < _moveSets.Length; i++)
             {
-				_moveSets [i] = Quaternion.Euler(moveSets [i].rotation);
+				_moveSets [i] = Quaternion.Euler(moveSets [i].xRotation, cam.transform.localRotation.y, cam.transform.localRotation.z);
 			}
 			return moveSets[(MathStuff.GetClosestRotationIndex (cam.transform.localRotation, _moveSets))];
 		}
@@ -105,9 +105,12 @@ public class Player : AnimatedMovingObject
 				animator.SetInteger ("ActiveMoveSet", 1);
 		}
 	}
-
+    private Quaternion currentCamRot = Quaternion.identity;
+    private Quaternion desiredCamRot = Quaternion.identity;
     private float swiftChangeMoveSetSpeed = 10.0f;
-	private bool swiftChangeMoveSet = false;
+    private float _swiftChangeMoveSetSpeed = 0.0f;
+    private bool swiftChangeMoveSet = false;
+    private bool m_PreviousSwiftChangeMoveSet = false;
 
     public override void Start ()
     {
@@ -122,13 +125,43 @@ public class Player : AnimatedMovingObject
         //update base class
         base.Update ();
 
+        m_PreviousSwiftChangeMoveSet = swiftChangeMoveSet;
+
+        //mouse wheel
+        if (CrossPlatformInputManager.GetAxis("Mouse ScrollWheel") > 0.0f)
+        {
+            swiftChangeMoveSet = true;
+            activeMoveSet = moveSets[0];
+        }
+        if (CrossPlatformInputManager.GetAxis("Mouse ScrollWheel") < 0.0f)
+        {
+            swiftChangeMoveSet = true;
+            activeMoveSet = moveSets[1];
+        }
+
         //swift change lerp, and slow change correction
         if (swiftChangeMoveSet)
         {
-			cam.transform.localRotation = Quaternion.Lerp (cam.transform.localRotation, Quaternion.Euler (_activeMoveSet.rotation), swiftChangeMoveSetSpeed * Time.deltaTime);
-			mouseLook.Init (cam.transform);
-			if (cam.transform.localRotation == Quaternion.Euler (_activeMoveSet.rotation))
-				swiftChangeMoveSet = false;
+            //
+            if(!m_PreviousSwiftChangeMoveSet)
+            {
+                currentCamRot = cam.transform.localRotation;
+                desiredCamRot = Quaternion.Euler(_activeMoveSet.xRotation, currentCamRot.eulerAngles.y, currentCamRot.eulerAngles.z);
+                _swiftChangeMoveSetSpeed = 0.0f;
+            }
+
+            //
+            _swiftChangeMoveSetSpeed += swiftChangeMoveSetSpeed * Time.deltaTime;
+            if (_swiftChangeMoveSetSpeed > 1.0f)
+                _swiftChangeMoveSetSpeed = 1.0f;
+
+            //
+            cam.transform.localRotation = Quaternion.Lerp(currentCamRot, desiredCamRot, _swiftChangeMoveSetSpeed);
+            mouseLook.Init(cam.transform);
+
+            //
+            if (Mathf.Approximately(_swiftChangeMoveSetSpeed, 1.0f))
+                swiftChangeMoveSet = false;
 		}
         else if (_activeMoveSet != activeMoveSet)
 			activeMoveSet = activeMoveSet;
@@ -141,18 +174,6 @@ public class Player : AnimatedMovingObject
                 gizmo.restrictY = activeMoveSet != moveSet;
             }
         }
-
-        //mouse wheel
-        if (CrossPlatformInputManager.GetAxis("Mouse ScrollWheel") > 0.0f)
-        {
-            swiftChangeMoveSet = true;
-            activeMoveSet = moveSets[0];
-        }
-        if (CrossPlatformInputManager.GetAxis ("Mouse ScrollWheel") < 0.0f)
-        {
-			swiftChangeMoveSet = true;
-			activeMoveSet = moveSets [1];
-		}
 	}
     public override void FixedUpdate()
     {
