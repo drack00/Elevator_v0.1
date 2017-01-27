@@ -142,7 +142,7 @@ public class Player : AnimatedMovingObject
         //swift change lerp, and slow change correction
         if (swiftChangeMoveSet)
         {
-            //
+            //begin loop values
             if(!m_PreviousSwiftChangeMoveSet)
             {
                 currentCamRot = cam.transform.localRotation;
@@ -150,16 +150,16 @@ public class Player : AnimatedMovingObject
                 _swiftChangeMoveSetSpeed = 0.0f;
             }
 
-            //
+            //increase t var
             _swiftChangeMoveSetSpeed += swiftChangeMoveSetSpeed * Time.deltaTime;
             if (_swiftChangeMoveSetSpeed > 1.0f)
                 _swiftChangeMoveSetSpeed = 1.0f;
 
-            //
+            //lerp and recenter
             cam.transform.localRotation = Quaternion.Lerp(currentCamRot, desiredCamRot, _swiftChangeMoveSetSpeed);
             mouseLook.Init(cam.transform);
 
-            //
+            //break loop if t = 1
             if (Mathf.Approximately(_swiftChangeMoveSetSpeed, 1.0f))
                 swiftChangeMoveSet = false;
 		}
