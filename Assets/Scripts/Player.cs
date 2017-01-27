@@ -159,18 +159,8 @@ public class Player : AnimatedMovingObject
         //avoids the mouse looking if the game is effectively paused
         if (Mathf.Abs(Time.timeScale) < float.Epsilon) return;
 
-        // get the rotation before it's changed
-        //float oldYRotation = transform.eulerAngles.y;
-
         //look rotation
         mouseLook.LookRotation(cam.transform);
-
-        /*if (GetGrounded() || advancedSettings.airControl)
-        {
-            // Rotate the rigidbody velocity to match the new direction that the character is looking
-            Quaternion velRotation = Quaternion.AngleAxis(transform.eulerAngles.y - oldYRotation, Vector3.up);
-            rigidbody.velocity = velRotation * rigidbody.velocity;
-        }*/
 
         base.FixedUpdate();
     }
