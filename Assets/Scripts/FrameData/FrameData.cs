@@ -46,8 +46,8 @@ public class FrameData : MonoBehaviour
             if (!isTorque)
             {
                 Vector3 vector = SortVectors.GetCorrectVector(type, flatten, amount,
-                hit.transform.position, hit.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
-                hurt.transform.position, hurt.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus())) * multiplier;
+                    hit.transform.position, hit.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
+                    hurt.transform.position, hurt.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus())) * multiplier;
 
                 if (additive)
                     hurt.rigidbody.AddForce(vector, ForceMode.VelocityChange);

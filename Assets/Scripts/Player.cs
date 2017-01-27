@@ -14,8 +14,9 @@ public class Player : AnimatedMovingObject
 
     public override Vector3 GetFocus()
     {
-        return cam.transform.forward; ;
+        return focus;
     }
+    private Vector3 focus = Vector3.zero;
     public override Vector2 GetInput()
     {
         if ((blockingMask & BlockingMask.Movement) != 0)
@@ -52,6 +53,7 @@ public class Player : AnimatedMovingObject
                 gizmo.enabled = true;
             }
         }
+        focus = new Vector3(cam.transform.forward.x, 0f, cam.transform.forward.z).normalized;
     }
     public override void NextAction()
     {
