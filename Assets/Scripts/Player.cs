@@ -27,6 +27,7 @@ public class Player : AnimatedMovingObject
             x = CrossPlatformInputManager.GetAxis("Horizontal"),
             y = CrossPlatformInputManager.GetAxis("Vertical")
         };
+        input.Normalize();
         movementSettings.UpdateDesiredTargetSpeed(input);
 
         return input;

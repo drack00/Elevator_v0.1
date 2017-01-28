@@ -68,13 +68,14 @@ public class AnimatedMovingObject : MovingObject
     {
         return animator.GetBool("Grabbed");
     }
-    public override void SetMoveSpeed(float _moveSpeed)
+    public override void SetSpeed(Vector2 speed)
     {
-        animator.SetFloat("MoveSpeed", _moveSpeed);
+        animator.SetFloat("Speed_Y", speed.y);
+        animator.SetFloat("Speed_X", speed.x);
     }
-    public override float GetMoveSpeed()
+    public override Vector2 GetSpeed()
     {
-        return animator.GetFloat("MoveSpeed");
+        return new Vector2(animator.GetFloat("Speed_X"), animator.GetFloat("Speed_Y"));
     }
     public override void SetHealth(float _health)
     {

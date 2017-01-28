@@ -27,6 +27,7 @@ public class Enemy : AnimatedMovingObject
             x = ai.movement.agent.velocity.x,
             y = ai.movement.agent.velocity.z
         };
+        input.Normalize();
         movementSettings.UpdateDesiredTargetSpeed(input);
         return input;
     }

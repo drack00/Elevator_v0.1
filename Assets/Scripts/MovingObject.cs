@@ -71,10 +71,10 @@ public class MovingObject : MonoBehaviour
     {
         return false;
     }
-    public virtual void SetMoveSpeed(float _moveSpeed) { }
-    public virtual float GetMoveSpeed()
+    public virtual void SetSpeed(Vector2 speed) { }
+    public virtual Vector2 GetSpeed()
     {
-        return rigidbody.velocity.magnitude;
+        return new Vector2(rigidbody.velocity.x, rigidbody.velocity.z);
     }
     public virtual void SetHealth(float _health) { }
     public virtual float GetHealth()
@@ -221,7 +221,7 @@ public class MovingObject : MonoBehaviour
 
         //wall check
         //iterate clockwise through cardinal directions, find the first collision
-        Vector3[] startDirs = { transform.forward, transform.right, -1 * transform.forward, -1 * transform.right };
+        Vector3[] startDirs = { GetFocus(), Quaternion.Euler(0f, 90f, 0f) * GetFocus(), Quaternion.Euler(0f, 180f, 0f) * GetFocus(), Quaternion.Euler(0f, 270f, 0f) * GetFocus() };
         Vector3 testDir = startDirs[0];
         Vector3 wallDir0 = Vector3.zero;
         for (int i = 0; i < startDirs.Length; i++)
@@ -254,7 +254,7 @@ public class MovingObject : MonoBehaviour
             }
         }
         //second pass, find the first counter-clockwise wall collision
-        startDirs = new Vector3[] { transform.forward, -1 * transform.right, -1 * transform.forward, transform.right };
+        startDirs = new Vector3[] { GetFocus(), Quaternion.Euler(0f, 270f, 0f) * GetFocus(), Quaternion.Euler(0f, 180f, 0f) * GetFocus(), Quaternion.Euler(0f, 90f, 0f) * GetFocus() };
         testDir = startDirs[0];
         Vector3 wallDir1 = wallDir0;
         for (int i = 0; i < startDirs.Length; i++)
@@ -287,8 +287,9 @@ public class MovingObject : MonoBehaviour
             }
         }
 
-        //take the average of both passes
-        SetWallDirection(transform.InverseTransformDirection(Vector3.Lerp(wallDir0, wallDir1, 0.5f).normalized));
+        //take the average of both passes, convert to local direction using focus direction
+        Vector3 averageDirection = Vector3.Lerp(wallDir0, wallDir1, 0.5f).normalized;
+        SetWallDirection(Quaternion.LookRotation(GetFocus()) * averageDirection);
     }
 
     //grab functions
@@ -459,11 +460,10 @@ public class MovingObject : MonoBehaviour
     }
 	public virtual void Update ()
     {
-        SetMoveSpeed(new Vector3(rigidbody.velocity.x, 0.0f, rigidbody.velocity.z).magnitude);
-
         NextAction();
         RotateView();
         input = GetInput();
+        SetSpeed(input);
 
         if (GetGrounded())
             StopGrabbing();
