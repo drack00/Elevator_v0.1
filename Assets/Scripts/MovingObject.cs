@@ -244,19 +244,19 @@ public class MovingObject : MonoBehaviour
                 //wall check at test direction
                 if (Physics.SphereCast(transform.position, extents.magnitude, testDir, out hitInfo,
                                        (height - extents.magnitude) + advancedSettings.groundCheckDistance))
-                    wallDir0 = new Vector2(testDir.x, testDir.z).normalized;
+                    wallDir0 = new Vector2(testDir.x, testDir.z);
                 //cast backwards for safety, exclude collisions with self
                 else if(Physics.SphereCast(transform.position + (testDir * ((height - extents.magnitude) + advancedSettings.groundCheckDistance)), extents.magnitude, -1 * testDir, out hitInfo,
                                        (height - extents.magnitude) + advancedSettings.groundCheckDistance) &&
                                        hitInfo.collider.attachedRigidbody != rigidbody)
-                    wallDir0 = new Vector2(testDir.x, testDir.z).normalized;
+                    wallDir0 = new Vector2(testDir.x, testDir.z);
 
                 //next wall smoothing step
                 _wallCheckSmoothing += wallCheckSmoothing;
             }
         }
         //second pass, find the first counter-clockwise wall collision
-        startDirs = new Vector3[] { GetFocus(), Quaternion.Euler(0f, 270f, 0f) * GetFocus(), Quaternion.Euler(0f, 180f, 0f) * GetFocus(), Quaternion.Euler(0f, 90f, 0f) * GetFocus() };
+        startDirs = new Vector3[] { GetFocus(), Quaternion.Euler(0f, -90f, 0f) * GetFocus(), Quaternion.Euler(0f, 180f, 0f) * GetFocus(), Quaternion.Euler(0f, 90f, 0f) * GetFocus() };
         testDir = startDirs[0];
         Vector2 wallDir1 = wallDir0;
         for (int i = 0; i < startDirs.Length; i++)
@@ -277,20 +277,24 @@ public class MovingObject : MonoBehaviour
                 //wall check at test direction
                 if (Physics.SphereCast(transform.position, extents.magnitude, testDir, out hitInfo,
                                        (height - extents.magnitude) + advancedSettings.groundCheckDistance))
-                    wallDir1 = new Vector2(testDir.x, testDir.z).normalized;
+                    wallDir1 = new Vector2(testDir.x, testDir.z);
                 //cast backwards for safety, exclude collisions with self
                 else if (Physics.SphereCast(transform.position + (testDir * ((height - extents.magnitude) + advancedSettings.groundCheckDistance)), extents.magnitude, -1 * testDir, out hitInfo,
                                        (height - extents.magnitude) + advancedSettings.groundCheckDistance) &&
                                        hitInfo.collider.attachedRigidbody != rigidbody)
-                    wallDir1 = new Vector2(testDir.x, testDir.z).normalized;
+                    wallDir1 = new Vector2(testDir.x, testDir.z);
 
                 //next wall smoothing step
                 _wallCheckSmoothing += wallCheckSmoothing;
             }
         }
 
-        //take the average of both passes, convert to local direction using focus direction, and set
-        SetWallDirection(Quaternion.LookRotation(GetFocus()) * Vector2.Lerp(wallDir0, wallDir1, 0.5f).normalized);
+        //take the average of both passes, convert to local direction using focus direction, and set wall direction
+        Vector2 averageDir = Vector2.Lerp(wallDir0, wallDir1, 0.5f).normalized;
+        Vector3 worldDir = new Vector3(averageDir.x, 0f, averageDir.y);
+        Quaternion inverseRot = Quaternion.LookRotation(GetFocus());
+        Vector3 localDir = inverseRot * worldDir;
+        SetWallDirection(new Vector2(localDir.x, localDir.z));
     }
 
     //grab functions

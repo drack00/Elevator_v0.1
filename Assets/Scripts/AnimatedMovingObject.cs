@@ -42,8 +42,6 @@ public class AnimatedMovingObject : MovingObject
     }
     public override void SetWallDirection(Vector2 _wallDirection)
     {
-        base.SetWallDirection(_wallDirection);
-
         animator.SetFloat("Walled_X", _wallDirection.x);
         animator.SetFloat("Walled_Y", _wallDirection.y);
     }

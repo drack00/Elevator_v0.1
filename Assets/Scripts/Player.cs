@@ -122,7 +122,7 @@ public class Player : AnimatedMovingObject
     {
         base.Awake();
 
-        focus = cam.transform.forward;
+        focus = new Vector3(cam.transform.forward.x, 0f, cam.transform.forward.z).normalized;
     }
     public override void Start ()
     {
