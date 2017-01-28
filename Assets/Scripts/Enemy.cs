@@ -28,7 +28,11 @@ public class Enemy : AnimatedMovingObject
             y = ai.movement.agent.velocity.z
         };
         input.Normalize();
+
+        SetSpeed(input);
+
         movementSettings.UpdateDesiredTargetSpeed(input);
+
         return input;
     }
     public override void RotateView()

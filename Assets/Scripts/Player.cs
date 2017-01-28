@@ -16,7 +16,7 @@ public class Player : AnimatedMovingObject
     {
         return focus;
     }
-    private Vector3 focus = Vector3.zero;
+    private Vector3 focus;
     public override Vector2 GetInput()
     {
         if ((blockingMask & BlockingMask.Movement) != 0)
@@ -28,6 +28,9 @@ public class Player : AnimatedMovingObject
             y = CrossPlatformInputManager.GetAxis("Vertical")
         };
         input.Normalize();
+
+        SetSpeed(input);
+
         movementSettings.UpdateDesiredTargetSpeed(input);
 
         return input;
@@ -115,6 +118,12 @@ public class Player : AnimatedMovingObject
     private bool swiftChangeMoveSet = false;
     private bool m_PreviousSwiftChangeMoveSet = false;
 
+    public override void Awake()
+    {
+        base.Awake();
+
+        focus = cam.transform.forward;
+    }
     public override void Start ()
     {
         mouseLook.Init(cam.transform);

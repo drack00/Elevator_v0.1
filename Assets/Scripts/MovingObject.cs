@@ -31,6 +31,8 @@ public class MovingObject : MonoBehaviour
     }
     public virtual Vector2 GetInput()
     {
+        SetSpeed(Vector2.zero);
+
         return Vector2.zero;
     }
     public virtual void RotateView()
@@ -56,10 +58,10 @@ public class MovingObject : MonoBehaviour
     {
         return false;
     }
-    public virtual void SetWallDirection(Vector3 _wallDirection) { }
-    public virtual Vector3 GetWallDirection()
+    public virtual void SetWallDirection(Vector2 _wallDirection) { }
+    public virtual Vector2 GetWallDirection()
     {
-        return Vector3.zero;
+        return Vector2.zero;
     }
     public virtual void SetGrab(bool _grab) { }
     public virtual bool GetGrab()
@@ -223,7 +225,7 @@ public class MovingObject : MonoBehaviour
         //iterate clockwise through cardinal directions, find the first collision
         Vector3[] startDirs = { GetFocus(), Quaternion.Euler(0f, 90f, 0f) * GetFocus(), Quaternion.Euler(0f, 180f, 0f) * GetFocus(), Quaternion.Euler(0f, 270f, 0f) * GetFocus() };
         Vector3 testDir = startDirs[0];
-        Vector3 wallDir0 = Vector3.zero;
+        Vector2 wallDir0 = Vector2.zero;
         for (int i = 0; i < startDirs.Length; i++)
         {
             //find start direction
@@ -242,12 +244,12 @@ public class MovingObject : MonoBehaviour
                 //wall check at test direction
                 if (Physics.SphereCast(transform.position, extents.magnitude, testDir, out hitInfo,
                                        (height - extents.magnitude) + advancedSettings.groundCheckDistance))
-                    wallDir0 = testDir;
+                    wallDir0 = new Vector2(testDir.x, testDir.z).normalized;
                 //cast backwards for safety, exclude collisions with self
                 else if(Physics.SphereCast(transform.position + (testDir * ((height - extents.magnitude) + advancedSettings.groundCheckDistance)), extents.magnitude, -1 * testDir, out hitInfo,
                                        (height - extents.magnitude) + advancedSettings.groundCheckDistance) &&
                                        hitInfo.collider.attachedRigidbody != rigidbody)
-                    wallDir0 = testDir;
+                    wallDir0 = new Vector2(testDir.x, testDir.z).normalized;
 
                 //next wall smoothing step
                 _wallCheckSmoothing += wallCheckSmoothing;
@@ -256,7 +258,7 @@ public class MovingObject : MonoBehaviour
         //second pass, find the first counter-clockwise wall collision
         startDirs = new Vector3[] { GetFocus(), Quaternion.Euler(0f, 270f, 0f) * GetFocus(), Quaternion.Euler(0f, 180f, 0f) * GetFocus(), Quaternion.Euler(0f, 90f, 0f) * GetFocus() };
         testDir = startDirs[0];
-        Vector3 wallDir1 = wallDir0;
+        Vector2 wallDir1 = wallDir0;
         for (int i = 0; i < startDirs.Length; i++)
         {
             //find start direction
@@ -275,21 +277,20 @@ public class MovingObject : MonoBehaviour
                 //wall check at test direction
                 if (Physics.SphereCast(transform.position, extents.magnitude, testDir, out hitInfo,
                                        (height - extents.magnitude) + advancedSettings.groundCheckDistance))
-                    wallDir1 = testDir;
+                    wallDir1 = new Vector2(testDir.x, testDir.z).normalized;
                 //cast backwards for safety, exclude collisions with self
                 else if (Physics.SphereCast(transform.position + (testDir * ((height - extents.magnitude) + advancedSettings.groundCheckDistance)), extents.magnitude, -1 * testDir, out hitInfo,
                                        (height - extents.magnitude) + advancedSettings.groundCheckDistance) &&
                                        hitInfo.collider.attachedRigidbody != rigidbody)
-                    wallDir1 = testDir;
+                    wallDir1 = new Vector2(testDir.x, testDir.z).normalized;
 
                 //next wall smoothing step
                 _wallCheckSmoothing += wallCheckSmoothing;
             }
         }
 
-        //take the average of both passes, convert to local direction using focus direction
-        Vector3 averageDirection = Vector3.Lerp(wallDir0, wallDir1, 0.5f).normalized;
-        SetWallDirection(Quaternion.LookRotation(GetFocus()) * averageDirection);
+        //take the average of both passes, convert to local direction using focus direction, and set
+        SetWallDirection(Quaternion.LookRotation(GetFocus()) * Vector2.Lerp(wallDir0, wallDir1, 0.5f).normalized);
     }
 
     //grab functions
@@ -463,7 +464,6 @@ public class MovingObject : MonoBehaviour
         NextAction();
         RotateView();
         input = GetInput();
-        SetSpeed(input);
 
         if (GetGrounded())
             StopGrabbing();
@@ -498,7 +498,7 @@ public class MovingObject : MonoBehaviour
             }
         }
 
-        if((advancedSettings.airControl || GetGrounded() || GetCapped() || GetWallDirection() != Vector3.zero) && (blockingMask & BlockingMask.Drag) == 0)
+        if((advancedSettings.airControl || GetGrounded() || GetCapped() || GetWallDirection() != Vector2.zero) && (blockingMask & BlockingMask.Drag) == 0)
         {
             rigidbody.drag = 5f;
         }
@@ -515,7 +515,7 @@ public class MovingObject : MonoBehaviour
         {
 
         }
-        if (GetWallDirection() == Vector3.zero && m_PreviousWallDirection != Vector3.zero && (blockingMask & BlockingMask.WallStick) == 0)
+        if (GetWallDirection() == Vector2.zero && m_PreviousWallDirection != Vector3.zero && (blockingMask & BlockingMask.WallStick) == 0)
         {
 
         }
