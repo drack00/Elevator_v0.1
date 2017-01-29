@@ -15,7 +15,7 @@ public class Enemy : AnimatedMovingObject
 
     public override Vector3 GetFocus()
     {
-        return root.forward;
+        return new Vector3(root.forward.x, 0f, root.forward.z).normalized;
     }
     public override Vector2 GetInput()
     {
@@ -31,7 +31,7 @@ public class Enemy : AnimatedMovingObject
 
         SetSpeed(input);
 
-        movementSettings.UpdateDesiredTargetSpeed(input);
+        movementSettings.UpdateDesiredTargetSpeed(Quaternion.Inverse(Quaternion.LookRotation(GetFocus())) * input);
 
         return input;
     }
@@ -40,9 +40,8 @@ public class Enemy : AnimatedMovingObject
         if ((blockingMask & BlockingMask.Orientation) != 0)
             return;
 
-        Quaternion rotation = ai.orientation.desiredRotation;
-        rotation = Quaternion.Euler(0.0f, rotation.eulerAngles.y, 0.0f);
-        root.rotation = rotation;
+        Quaternion desiredRotation = Quaternion.Euler(0.0f, ai.orientation.desiredRotation.eulerAngles.y, 0.0f);
+        root.rotation = desiredRotation;
     }
     public override void NextAction()
     {
@@ -65,5 +64,9 @@ public class Enemy : AnimatedMovingObject
         base.Start();
 
         ai.movement.agent.Resume();
+    }
+    public override void Update()
+    {
+        base.Update();
     }
 }
