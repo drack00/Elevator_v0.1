@@ -22,16 +22,14 @@ public class Enemy : AnimatedMovingObject
         if ((blockingMask & BlockingMask.Movement) != 0)
             return base.GetInput();
 
-        Vector2 input = new Vector2
-        {
-            x = ai.movement.agent.velocity.x,
-            y = ai.movement.agent.velocity.z
-        };
-        input.Normalize();
+        Vector3 worldDir = new Vector3(ai.movement.agent.velocity.x, 0f, ai.movement.agent.velocity.z).normalized;
+        Quaternion inverseRot = Quaternion.Inverse(Quaternion.LookRotation(GetFocus()));
+        Vector3 localDir = (inverseRot * worldDir).normalized;
+        Vector2 input = new Vector2(localDir.x, localDir.z).normalized;
 
         SetSpeed(input);
 
-        movementSettings.UpdateDesiredTargetSpeed(Quaternion.Inverse(Quaternion.LookRotation(GetFocus())) * input);
+        movementSettings.UpdateDesiredTargetSpeed(input);
 
         return input;
     }
@@ -65,8 +63,11 @@ public class Enemy : AnimatedMovingObject
 
         ai.movement.agent.Resume();
     }
-    public override void Update()
+
+    private Vector3 gizmo = Vector3.zero;
+    void OnDrawGizmos()
     {
-        base.Update();
+        if (gizmo != Vector3.zero)
+            Gizmos.DrawRay(transform.position, gizmo);
     }
 }

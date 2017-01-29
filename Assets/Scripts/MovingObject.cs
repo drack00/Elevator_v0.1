@@ -291,10 +291,10 @@ public class MovingObject : MonoBehaviour
 
         //take the average of both passes, convert to local direction using focus direction, and set wall direction
         Vector2 averageDir = Vector2.Lerp(wallDir0, wallDir1, 0.5f).normalized;
-        Vector3 worldDir = new Vector3(averageDir.x, 0f, averageDir.y);
+        Vector3 worldDir = new Vector3(averageDir.x, 0f, averageDir.y).normalized;
         Quaternion inverseRot = Quaternion.LookRotation(GetFocus());
-        Vector3 localDir = inverseRot * worldDir;
-        SetWallDirection(new Vector2(localDir.x, localDir.z));
+        Vector3 localDir = (inverseRot * worldDir).normalized;
+        SetWallDirection(new Vector2(localDir.x, localDir.z).normalized);
     }
 
     //grab functions
@@ -436,7 +436,6 @@ public class MovingObject : MonoBehaviour
 		stun = 0.0f;
 	}
     private Vector2 input = Vector2.zero;
-    public bool useRelativeInput = true;
 
     public Transform root;
 
@@ -490,7 +489,7 @@ public class MovingObject : MonoBehaviour
 
         if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon) && (advancedSettings.airControl || GetGrounded()))
         {
-            Vector3 desiredMove = useRelativeInput ? GetFocus() * input.y + (Quaternion.Euler(0.0f, 90.0f, 0.0f) * GetFocus()) * input.x : transform.forward * input.y + transform.right * input.x;
+            Vector3 desiredMove = GetFocus() * input.y + (Quaternion.Euler(0.0f, 90.0f, 0.0f) * GetFocus()) * input.x;
             desiredMove = Vector3.ProjectOnPlane(desiredMove, m_GroundContactNormal).normalized;
 
             desiredMove.x = desiredMove.x * movementSettings.CurrentTargetSpeed;
