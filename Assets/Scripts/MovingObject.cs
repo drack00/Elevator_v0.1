@@ -23,6 +23,7 @@ public class MovingObject : MonoBehaviour
             return GetComponent<Collider>();
         }
     }
+    public ConstantForce dropForce;
 
     //functionality overrides
     public virtual Vector3 GetFocus()
@@ -453,6 +454,9 @@ public class MovingObject : MonoBehaviour
 
         if (root == null)
             root = transform;
+
+        if (dropForce == null && GetComponent<ConstantForce>() != null)
+            dropForce = GetComponent<ConstantForce>();
     }
 	public virtual void Start ()
     {
@@ -523,5 +527,7 @@ public class MovingObject : MonoBehaviour
         {
 
         }
+
+        if (dropForce != null) dropForce.enabled = !(GetGrounded() || rigidbody.velocity.y > 0f);
     }
 }

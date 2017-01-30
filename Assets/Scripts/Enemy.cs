@@ -63,11 +63,4 @@ public class Enemy : AnimatedMovingObject
 
         ai.movement.agent.Resume();
     }
-
-    private Vector3 gizmo = Vector3.zero;
-    void OnDrawGizmos()
-    {
-        if (gizmo != Vector3.zero)
-            Gizmos.DrawRay(transform.position, gizmo);
-    }
 }
