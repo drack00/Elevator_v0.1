@@ -506,7 +506,7 @@ public class MovingObject : MonoBehaviour
             }
         }
 
-        if((advancedSettings.airControl || GetGrounded() || GetCapped() || GetWallDirection() != Vector2.zero) && (blockingMask & BlockingMask.Drag) == 0)
+        if((advancedSettings.airControl || GetGrounded() || (GetWallDirection() != Vector2.zero && rigidbody.velocity.y < 0f)) && (blockingMask & BlockingMask.Drag) == 0)
         {
             rigidbody.drag = 5f;
         }
@@ -525,7 +525,7 @@ public class MovingObject : MonoBehaviour
         }
         if (GetWallDirection() == Vector2.zero && m_PreviousWallDirection != Vector3.zero && (blockingMask & BlockingMask.WallStick) == 0)
         {
-
+            
         }
 
         if (dropForce != null) dropForce.enabled = !(GetGrounded() || rigidbody.velocity.y > 0f);

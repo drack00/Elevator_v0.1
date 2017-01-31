@@ -266,7 +266,6 @@ public class GameController : MonoBehaviour
 		Cursor.lockState = CursorLockMode.Locked;
 		Cursor.visible = false;
 	}
-
     void Start ()
     {
         currentWave = waves[0];
