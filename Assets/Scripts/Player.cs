@@ -88,12 +88,16 @@ public class Player : AnimatedMovingObject
     public Camera cam;
     public MouseLook mouseLook = new MouseLook();
 
+    public bool lockActiveMoveSet = false;
     public MoveSet[] moveSets;
 	private MoveSet _activeMoveSet;
 	public MoveSet activeMoveSet
     {
 		get
         {
+            if (lockActiveMoveSet)
+                return _activeMoveSet;
+
 			Quaternion[] _moveSets = new Quaternion[moveSets.Length];
 			for (int i = 0; i < _moveSets.Length; i++)
             {
@@ -103,6 +107,9 @@ public class Player : AnimatedMovingObject
 		}
 		set
         {
+            if (lockActiveMoveSet)
+                return;
+
 			_activeMoveSet = value;
 
 			if (_activeMoveSet == moveSets [0])
@@ -137,6 +144,20 @@ public class Player : AnimatedMovingObject
         //update base class
         base.Update ();
 
+        //align ui gizmos
+        foreach (MoveSet moveSet in moveSets)
+        {
+            foreach (UIGizmo gizmo in moveSet.gizmos)
+            {
+                gizmo.restrictY = activeMoveSet != moveSet;
+            }
+        }
+
+        //dont do the following stuff if the active moveset is locked
+        if (lockActiveMoveSet)
+            return;
+
+        //record previous swift change moveset state
         m_PreviousSwiftChangeMoveSet = swiftChangeMoveSet;
 
         //mouse wheel
@@ -175,17 +196,8 @@ public class Player : AnimatedMovingObject
             if (Mathf.Approximately(_swiftChangeMoveSetSpeed, 1.0f))
                 swiftChangeMoveSet = false;
 		}
-        else if (_activeMoveSet != activeMoveSet)
+        else if (_activeMoveSet != activeMoveSet )
 			activeMoveSet = activeMoveSet;
-
-        //align ui gizmos
-        foreach (MoveSet moveSet in moveSets)
-        {
-            foreach (UIGizmo gizmo in moveSet.gizmos)
-            {
-                gizmo.restrictY = activeMoveSet != moveSet;
-            }
-        }
 	}
     public override void FixedUpdate()
     {
