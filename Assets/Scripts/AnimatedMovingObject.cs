@@ -12,9 +12,9 @@ public class AnimatedMovingObject : MovingObject
         }
     }
 
-    public override void Clash()
+    public override void Clash(string clashName)
     {
-        animator.SetTrigger("Clash");
+        animator.SetTrigger(clashName);
     }
     public override void SetAlive(bool _alive)
     {

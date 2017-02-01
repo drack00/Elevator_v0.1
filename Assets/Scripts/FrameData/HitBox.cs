@@ -8,10 +8,11 @@ public class HitBox : ActiveFrameData
     public LayerMask grabLayers;
     public Vector3 grabOffset;
     public LayerMask targetLayers;
-    public LayerMask clashLayers;
     public bool continuous;
     public int maxHurts;
     public bool retainHurts;
+    public LayerMask clashLayers;
+    public string clashName = "Clash";
 
     [System.Serializable]
 	public class HitBehaviour : Behaviour { }
@@ -58,7 +59,7 @@ public class HitBox : ActiveFrameData
     {
         if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & clashLayers) != 0)
         {
-            mo.Clash();
+            mo.Clash(clashName);
 
             return;
         }
@@ -94,7 +95,7 @@ public class HitBox : ActiveFrameData
     {
         if ((LayerMask.GetMask(LayerMask.LayerToName(other.gameObject.layer)) & clashLayers) != 0)
         {
-            mo.Clash();
+            mo.Clash(clashName);
 
             return;
         }

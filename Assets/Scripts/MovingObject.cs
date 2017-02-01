@@ -43,7 +43,7 @@ public class MovingObject : MonoBehaviour
     public virtual void NextAction() { }
 
     //animation functions
-    public virtual void Clash() { }
+    public virtual void Clash(string clashName) { }
     public virtual void SetAlive(bool _alive) { }
     public virtual bool GetAlive()
     {
