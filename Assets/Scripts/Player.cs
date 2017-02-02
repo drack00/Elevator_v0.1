@@ -1,22 +1,19 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityStandardAssets.Characters.FirstPerson;
 using UnityStandardAssets.CrossPlatformInput;
 
 public class Player : AnimatedMovingObject
 {
-    [System.Serializable]
-    public class MoveSet
+    public override void SetGrounded(bool _grounded)
     {
-        public float xRotation;
-        public UIGizmo[] gizmos;
+        base.SetGrounded(_grounded);
+        activeMoveSet.ToggleGrounded(_grounded);
     }
 
     public override Vector3 GetFocus()
     {
-        return focus;
+        return new Vector3(root.forward.x, 0f, root.forward.z).normalized;
     }
-    private Vector3 focus;
     public override Vector2 GetInput()
     {
         if ((blockingMask & BlockingMask.Movement) != 0)
@@ -38,57 +35,50 @@ public class Player : AnimatedMovingObject
     public override void RotateView()
     {
         if ((blockingMask & BlockingMask.Orientation) != 0)
-        {
-            foreach(MoveSet moveSet in moveSets)
-            {
-                foreach (UIGizmo gizmo in moveSet.gizmos)
-                {
-                    gizmo.enabled = false;
-                }
-            }
-
             return;
-        }
 
-        foreach (MoveSet moveSet in moveSets)
-        {
-            foreach (UIGizmo gizmo in moveSet.gizmos)
-            {
-                gizmo.enabled = true;
-            }
-        }
-        focus = new Vector3(cam.transform.forward.x, 0f, cam.transform.forward.z).normalized;
+        //recenter camera
+        root.transform.rotation = cam.transform.rotation;
+
+        //change active moveset
+        if (_activeMoveSet != activeMoveSet && !lockActiveMoveSet)
+            activeMoveSet = activeMoveSet;
     }
     public override void NextAction()
     {
         if ((blockingMask & BlockingMask.Action) != 0)
         {
-            animator.ResetTrigger("LeftEdge");
-            animator.ResetTrigger("RightEdge");
+            foreach(MoveSet moveSet in moveSets)
+            {
+                moveSet.Reset();
+            }
 
             animator.ResetTrigger("Jump");
 
             return;
         }
 
-        if (CrossPlatformInputManager.GetButtonDown("Fire1"))
-            animator.SetTrigger("LeftEdge");
-        if (CrossPlatformInputManager.GetButtonDown("Fire2"))
-            animator.SetTrigger("RightEdge");
+        //moveset animator inputs
+        activeMoveSet.SetPositiveInput(CrossPlatformInputManager.GetButtonDown("Fire1"), CrossPlatformInputManager.GetButtonDown("Fire2"));
+        activeMoveSet.SetNegativeInput(CrossPlatformInputManager.GetButtonUp("Fire1"), CrossPlatformInputManager.GetButtonUp("Fire2"));
+        activeMoveSet.ToggleHoldInput(CrossPlatformInputManager.GetButton("Fire1"), CrossPlatformInputManager.GetButton("Fire2"));
 
-        animator.SetBool("Left", CrossPlatformInputManager.GetButton("Fire1"));
-        animator.SetBool("Right", CrossPlatformInputManager.GetButton("Fire2"));
-
+        //primary animator inputs
         if (CrossPlatformInputManager.GetButtonDown("Jump"))
             animator.SetTrigger("JumpEdge");
-
         animator.SetBool("Jump", CrossPlatformInputManager.GetButton("Jump"));
     }
 
     public Camera cam;
-    public MouseLook mouseLook = new MouseLook();
+    private float pitch = 0f;
+    private float yaw = 0f;
+    public float camSmoothing = 5f;
+    public float xSensitivity = 2f;
+    public float ySensitivity = 2f;
 
+    [HideInInspector]
     public bool lockActiveMoveSet = false;
+    [HideInInspector]
     public MoveSet[] moveSets;
 	private MoveSet _activeMoveSet;
 	public MoveSet activeMoveSet
@@ -101,9 +91,9 @@ public class Player : AnimatedMovingObject
 			Quaternion[] _moveSets = new Quaternion[moveSets.Length];
 			for (int i = 0; i < _moveSets.Length; i++)
             {
-				_moveSets [i] = Quaternion.Euler(moveSets [i].xRotation, cam.transform.localRotation.y, cam.transform.localRotation.z);
+				_moveSets [i] = Quaternion.Euler(moveSets [i].xRotation, root.localRotation.y, root.localRotation.z);
 			}
-			return moveSets[(MathStuff.GetClosestRotationIndex (cam.transform.localRotation, _moveSets))];
+			return moveSets[(MathStuff.GetClosestRotationIndex (root.localRotation, _moveSets))];
 		}
 		set
         {
@@ -112,29 +102,21 @@ public class Player : AnimatedMovingObject
 
 			_activeMoveSet = value;
 
-			if (_activeMoveSet == moveSets [0])
-				animator.SetInteger ("ActiveMoveSet", 0);
-			else 
-				animator.SetInteger ("ActiveMoveSet", 1);
+			foreach(MoveSet moveSet in moveSets)
+            {
+                moveSet.ToggleActive(moveSet == _activeMoveSet);
+            }
 		}
 	}
-    private Quaternion currentCamRot = Quaternion.identity;
-    private Quaternion desiredCamRot = Quaternion.identity;
-    private float swiftChangeMoveSetSpeed = 10.0f;
-    private float _swiftChangeMoveSetSpeed = 0.0f;
-    private bool swiftChangeMoveSet = false;
-    private bool m_PreviousSwiftChangeMoveSet = false;
 
     public override void Awake()
     {
-        base.Awake();
+        moveSets = GetComponentsInChildren<MoveSet>();
 
-        focus = new Vector3(cam.transform.forward.x, 0f, cam.transform.forward.z).normalized;
+        base.Awake();
     }
     public override void Start ()
     {
-        mouseLook.Init(cam.transform);
-
         activeMoveSet = moveSets[0];
 
         base.Start ();
@@ -144,69 +126,18 @@ public class Player : AnimatedMovingObject
         //update base class
         base.Update ();
 
-        //align ui gizmos
-        foreach (MoveSet moveSet in moveSets)
-        {
-            foreach (UIGizmo gizmo in moveSet.gizmos)
-            {
-                gizmo.restrictY = activeMoveSet != moveSet;
-            }
-        }
-
-        //dont do the following stuff if the active moveset is locked
-        if (lockActiveMoveSet)
-            return;
-
-        //record previous swift change moveset state
-        m_PreviousSwiftChangeMoveSet = swiftChangeMoveSet;
+        //dont continue if time scale is approximitly 0
+        if (Mathf.Abs(Time.timeScale) < float.Epsilon) return;
 
         //mouse wheel
         if (CrossPlatformInputManager.GetAxis("Mouse ScrollWheel") > 0.0f)
-        {
-            swiftChangeMoveSet = true;
-            activeMoveSet = moveSets[0];
-        }
+            pitch = moveSets[0].xRotation;
         if (CrossPlatformInputManager.GetAxis("Mouse ScrollWheel") < 0.0f)
-        {
-            swiftChangeMoveSet = true;
-            activeMoveSet = moveSets[1];
-        }
+            pitch = moveSets[1].xRotation;
 
-        //swift change lerp, and slow change correction
-        if (swiftChangeMoveSet)
-        {
-            //begin loop values
-            if(!m_PreviousSwiftChangeMoveSet)
-            {
-                currentCamRot = cam.transform.localRotation;
-                desiredCamRot = Quaternion.Euler(_activeMoveSet.xRotation, currentCamRot.eulerAngles.y, currentCamRot.eulerAngles.z);
-                _swiftChangeMoveSetSpeed = 0.0f;
-            }
-
-            //increase t var
-            _swiftChangeMoveSetSpeed += swiftChangeMoveSetSpeed * Time.deltaTime;
-            if (_swiftChangeMoveSetSpeed > 1.0f)
-                _swiftChangeMoveSetSpeed = 1.0f;
-
-            //lerp and recenter
-            cam.transform.localRotation = Quaternion.Lerp(currentCamRot, desiredCamRot, _swiftChangeMoveSetSpeed);
-            mouseLook.Init(cam.transform);
-
-            //break loop if t = 1
-            if (Mathf.Approximately(_swiftChangeMoveSetSpeed, 1.0f))
-                swiftChangeMoveSet = false;
-		}
-        else if (_activeMoveSet != activeMoveSet )
-			activeMoveSet = activeMoveSet;
-	}
-    public override void FixedUpdate()
-    {
-        //avoids the mouse looking if the game is effectively paused
-        if (Mathf.Abs(Time.timeScale) < float.Epsilon) return;
-
-        //look rotation
-        mouseLook.LookRotation(cam.transform);
-
-        base.FixedUpdate();
+        //set new camera rotation
+        yaw += CrossPlatformInputManager.GetAxis("Mouse X") * xSensitivity;
+        pitch -= CrossPlatformInputManager.GetAxis("Mouse Y") * ySensitivity;
+        cam.transform.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(pitch, yaw, 0f), camSmoothing * Time.deltaTime);
     }
 }

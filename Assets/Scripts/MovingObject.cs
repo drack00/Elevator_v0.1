@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityStandardAssets.CrossPlatformInput;
-using UnityStandardAssets.Characters.FirstPerson;
 using UnityEngine.AI;
 
 [RequireComponent (typeof(Rigidbody))]
