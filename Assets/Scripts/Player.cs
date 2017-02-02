@@ -9,6 +9,36 @@ public class Player : AnimatedMovingObject
         base.SetGrounded(_grounded);
         activeMoveSet.ToggleGrounded(_grounded);
     }
+    private Vector2 wallDirection = Vector2.zero;
+    public override void SetWallDirection(Vector2 _wallDirection)
+    {
+        wallDirection = _wallDirection;
+        (moveSets[0] as BareKnuckle).ToggleWalled(_wallDirection);
+    }
+    public override Vector2 GetWallDirection()
+    {
+        return wallDirection;
+    }
+    private bool grab = false;
+    public override void SetGrab(bool _grab)
+    {
+        grab = _grab;
+        (moveSets[0] as BareKnuckle).ToggleGrab(_grab);
+    }
+    public override bool GetGrab()
+    {
+        return grab;
+    }
+    private Vector2 speed = Vector2.zero;
+    public override void SetSpeed(Vector2 _speed)
+    {
+        speed = _speed;
+        (moveSets[1] as FleetFoot).ToggleMovement(_speed);
+    }
+    public override Vector2 GetSpeed()
+    {
+        return speed;
+    }
 
     public override Vector3 GetFocus()
     {
