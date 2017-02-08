@@ -16,6 +16,20 @@ public class MoveSet : MonoBehaviour
         gizmo = GetComponentsInChildren<UIGizmo>();
     }
 
+    void Update()
+    {
+        ToggleDisplayedGizmos(!dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"));
+    }
+
+    public GameObject dualGizmo0, dualGizmo1, leftGizmo, rightGizmo;
+    private void ToggleDisplayedGizmos(bool dualActive)
+    {
+        dualGizmo0.SetActive(dualActive);
+        dualGizmo1.SetActive(dualActive);
+        leftGizmo.SetActive(!dualActive);
+        rightGizmo.SetActive(!dualActive);
+    }
+
     public void ToggleActive(bool _active)
     {
         dualAnimator.SetBool("Active", _active);

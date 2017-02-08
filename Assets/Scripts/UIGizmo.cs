@@ -4,17 +4,23 @@ using System.Collections;
 public class UIGizmo : MonoBehaviour
 {
     public Transform referenceTransform;
-    public Vector3 relativePosition;
-    public Vector3 relativeRotation;
+    private Vector3 relativePosition;
+    private Quaternion relativeRotation;
+
+    void Awake()
+    {
+        relativePosition = transform.localPosition;
+        relativeRotation = transform.localRotation;
+    }
 
     private void OnEnable()
     {
         transform.position = referenceTransform.TransformPoint(relativePosition);
-        transform.rotation = referenceTransform.rotation * Quaternion.Euler(relativeRotation);
+        transform.rotation = referenceTransform.rotation * relativeRotation;
     }
     private void Update ()
     {
         transform.position = referenceTransform.TransformPoint(relativePosition);
-        transform.rotation = referenceTransform.rotation * Quaternion.Euler(relativeRotation);
+        transform.rotation = referenceTransform.rotation * relativeRotation;
     }
 }
