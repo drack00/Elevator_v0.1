@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class MoveSet : MonoBehaviour
 {
-    [HideInInspector]
-    public Animator mainAnimator;
+    public Animator dualAnimator;
     public Animator leftAnimator;
     public Animator rightAnimator;
     [HideInInspector]
@@ -14,80 +13,62 @@ public class MoveSet : MonoBehaviour
 
     void Awake()
     {
-        mainAnimator = GetComponent<Animator>();
         gizmo = GetComponentsInChildren<UIGizmo>();
-    }
-
-    public void Reset()
-    {
-        mainAnimator.ResetTrigger("Positive");
-        leftAnimator.ResetTrigger("Positive");
-        rightAnimator.ResetTrigger("Positive");
-
-        mainAnimator.ResetTrigger("Negative");
-        leftAnimator.ResetTrigger("Negative");
-        rightAnimator.ResetTrigger("Negative");
     }
 
     public void ToggleActive(bool _active)
     {
-        mainAnimator.SetBool("Active", _active);
+        dualAnimator.SetBool("Active", _active);
         leftAnimator.SetBool("Active", _active);
         rightAnimator.SetBool("Active", _active);
     }
     public void ToggleGrounded(bool _grounded)
     {
-        mainAnimator.SetBool("Grounded", _grounded);
+        dualAnimator.SetBool("Grounded", _grounded);
         leftAnimator.SetBool("Grounded", _grounded);
         rightAnimator.SetBool("Grounded", _grounded);
     }
     public void ToggleHoldInput(bool left, bool right)
     {
-        mainAnimator.SetBool("Hold", left && right);
+        dualAnimator.SetBool("Hold", left && right);
         leftAnimator.SetBool("Hold", left);
         rightAnimator.SetBool("Hold", right);
     }
 
     public void SetPositiveInput(bool left, bool right)
     {
-        if (left && right)
-        {
-            mainAnimator.SetTrigger("Positive");
+        if (left && right &&
+            leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && 
+            rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+            dualAnimator.SetTrigger("Positive");
 
-            return;
-        }
-
-        if (left)
-        {
+        else if (left && 
+            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+            leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
             leftAnimator.SetTrigger("Positive");
 
-            return;
-        }
-
-        if (right)
-        {
+        else if (right &&
+            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+            rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
             rightAnimator.SetTrigger("Positive");
-        }
     }
     public void SetNegativeInput(bool left, bool right)
     {
-        if (left && right)
-        {
-            mainAnimator.SetTrigger("Negative");
+        if (left && right &&
+            leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+            rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))
+            dualAnimator.SetTrigger("Negative");
 
-            return;
-        }
-
-        if (left)
-        {
+        else if (left && 
+            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+            leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))
             leftAnimator.SetTrigger("Negative");
 
-            return;
-        }
-
-        if (right)
-        {
+        else if (right && 
+            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+            rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))
             rightAnimator.SetTrigger("Negative");
-        }
     }
 }

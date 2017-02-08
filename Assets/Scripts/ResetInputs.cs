@@ -9,6 +9,9 @@ public class ResetInputs : MonoBehaviour
     void OnEnable()
     {
         animator.ResetTrigger("Positive");
+    }
+    void Update()
+    {
         animator.ResetTrigger("Negative");
     }
 }

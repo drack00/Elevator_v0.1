@@ -2,16 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 
-[RequireComponent(typeof(Collider))]
 public class FrameData : MonoBehaviour
 {
-    public new Collider collider
-    {
-        get
-        {
-            return GetComponent<Collider>();
-        }
-    }
+    [HideInInspector]
+    public new Collider collider;
     [HideInInspector]
     public new Rigidbody rigidbody;
     [HideInInspector]
@@ -46,8 +40,8 @@ public class FrameData : MonoBehaviour
             if (!isTorque)
             {
                 Vector3 vector = SortVectors.GetCorrectVector(type, flatten, amount,
-                    hit.transform.position, hit.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
-                    hurt.transform.position, hurt.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus())) * multiplier;
+                    hit.collider.transform.position, hit.collider.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
+                    hurt.collider.transform.position, hurt.collider.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus())) * multiplier;
 
                 if (additive)
                     hurt.rigidbody.AddForce(vector, ForceMode.VelocityChange);
@@ -57,8 +51,8 @@ public class FrameData : MonoBehaviour
             else
             {
                 Vector3 vector = (SortVectors.GetCorrectVector(type, flatten, Quaternion.Euler(amount),
-                    hit.transform.position, hit.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
-                    hurt.transform.position, hurt.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus()))).eulerAngles * multiplier;
+                    hit.collider.transform.position, hit.collider.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
+                    hurt.collider.transform.position, hurt.collider.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus()))).eulerAngles * multiplier;
 
                 if (additive)
                     hurt.rigidbody.AddTorque(vector, ForceMode.VelocityChange);
@@ -117,12 +111,12 @@ public class FrameData : MonoBehaviour
                 return;
 
             Vector3 pos = SortVectors.GetCorrectVector(positionType, positionFlatten, position,
-                hit.transform.position, hit.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
-                hurt.transform.position, hurt.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus()),
+                hit.collider.transform.position, hit.collider.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
+                hurt.collider.transform.position, hurt.collider.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus()),
                 false);
             Quaternion rot = SortVectors.GetCorrectVector(rotationType, rotationFlatten, Quaternion.Euler(rotation),
-                hit.transform.position, hit.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
-                hurt.transform.position, hurt.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus()),
+                hit.collider.transform.position, hit.collider.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
+                hurt.collider.transform.position, hurt.collider.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus()),
                 false);
 
             GameObject go = Instantiate(spawnPrefab, pos, rot) as GameObject;
@@ -138,6 +132,7 @@ public class FrameData : MonoBehaviour
 
     public virtual void Awake()
     {
+        collider = GetComponent<Collider>();
         rigidbody = collider.attachedRigidbody;
         mo = rigidbody.GetComponent<MovingObject>();
     }

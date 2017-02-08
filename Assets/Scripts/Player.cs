@@ -78,11 +78,6 @@ public class Player : AnimatedMovingObject
     {
         if ((blockingMask & BlockingMask.Action) != 0)
         {
-            foreach(MoveSet moveSet in moveSets)
-            {
-                moveSet.Reset();
-            }
-
             animator.ResetTrigger("Jump");
 
             return;
@@ -168,6 +163,15 @@ public class Player : AnimatedMovingObject
         //set new camera rotation
         yaw += CrossPlatformInputManager.GetAxis("Mouse X") * xSensitivity;
         pitch -= CrossPlatformInputManager.GetAxis("Mouse Y") * ySensitivity;
-        cam.transform.localRotation = Quaternion.Lerp(cam.transform.localRotation, Quaternion.Euler(pitch, yaw, 0f), camSmoothing * Time.deltaTime);
+        pitch = Mathf.Clamp(pitch, -90.0f, 90.0f);
+
+        //
+        Quaternion targetRot = Quaternion.Euler(pitch, yaw, 0f);
+        //Quaternion inverseTargetRot = Quaternion.Euler(-1*pitch, yaw, 180f);
+
+        //
+        cam.transform.localRotation = //Quaternion.Angle(cam.transform.localRotation, targetRot) < Quaternion.Angle(cam.transform.localRotation, inverseTargetRot) ?
+            Quaternion.Lerp(cam.transform.localRotation, targetRot, camSmoothing * Time.deltaTime); //:
+            //Quaternion.Lerp(cam.transform.localRotation, inverseTargetRot, camSmoothing * Time.deltaTime);
     }
 }
