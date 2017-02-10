@@ -220,8 +220,10 @@ public class Player : AnimatedMovingObject
                 dualAnimator != null &&
                 leftHold && rightHold && (
                 (dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && (
-                    leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge") || 
-                    rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))) ||
+                    ((leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) &&
+                        rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")) || 
+                    ((rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) &&
+                        leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")))) ||
                 ((dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) &&
                     (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))));
 
