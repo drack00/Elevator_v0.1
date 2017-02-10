@@ -4,6 +4,56 @@ using UnityEngine;
 
 public class MoveSet : MonoBehaviour
 {
+    public static MoveSet[] allMoveSets
+    {
+        get
+        {
+            return FindObjectsOfType<MoveSet>();
+        }
+    }
+    public static MoveSet GetMoveSet(Animator animator)
+    {
+        foreach(MoveSet moveSet in allMoveSets)
+        {
+            if (moveSet.dualAnimator == animator || moveSet.leftAnimator == animator || moveSet.rightAnimator == animator)
+                return moveSet;
+        }
+
+        return null;
+    }
+    public MoveSet[] allOtherMoveSets
+    {
+        get
+        {
+            List<MoveSet> _allOtherMoveSets = new List<MoveSet>(transform.parent.GetComponentsInChildren<MoveSet>());
+
+            _allOtherMoveSets.Remove(this);
+
+            return _allOtherMoveSets.ToArray();
+        }
+    }
+
+    [System.Serializable]
+    [System.Flags]
+    public enum ActiveInputs
+    {
+        Left = 0x0001, Right = 0x0002, Dual = Left | Right
+    }
+    public ActiveInputs activeInputs
+    {
+        get
+        {
+            if (!dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                return ActiveInputs.Dual;
+            if (!leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                return ActiveInputs.Left;
+            if (!rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                return ActiveInputs.Right;
+
+            return 0;
+        }
+    }
+
     public Animator dualAnimator;
     public Animator leftAnimator;
     public Animator rightAnimator;
@@ -16,19 +66,7 @@ public class MoveSet : MonoBehaviour
         gizmo = GetComponentsInChildren<UIGizmo>();
     }
 
-    void Update()
-    {
-        ToggleDisplayedGizmos(!dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"));
-    }
-
     public GameObject dualGizmo0, dualGizmo1, leftGizmo, rightGizmo;
-    private void ToggleDisplayedGizmos(bool dualActive)
-    {
-        dualGizmo0.SetActive(dualActive);
-        dualGizmo1.SetActive(dualActive);
-        leftGizmo.SetActive(!dualActive);
-        rightGizmo.SetActive(!dualActive);
-    }
 
     public void ToggleActive(bool _active)
     {
@@ -42,47 +80,19 @@ public class MoveSet : MonoBehaviour
         leftAnimator.SetBool("Grounded", _grounded);
         rightAnimator.SetBool("Grounded", _grounded);
     }
-    public void ToggleHoldInput(bool left, bool right)
+
+    public void Reset()
     {
-        dualAnimator.SetBool("Hold", left && right);
-        leftAnimator.SetBool("Hold", left);
-        rightAnimator.SetBool("Hold", right);
-    }
+        dualAnimator.ResetTrigger("Positive");
+        dualAnimator.ResetTrigger("Negative");
+        dualAnimator.SetBool("Hold", false);
 
-    public void SetPositiveInput(bool left, bool right)
-    {
-        if (left && right &&
-            leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && 
-            rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
-            dualAnimator.SetTrigger("Positive");
+        leftAnimator.ResetTrigger("Positive");
+        leftAnimator.ResetTrigger("Negative");
+        leftAnimator.SetBool("Hold", false);
 
-        else if (left && 
-            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-            leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
-            leftAnimator.SetTrigger("Positive");
-
-        else if (right &&
-            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-            rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
-            rightAnimator.SetTrigger("Positive");
-    }
-    public void SetNegativeInput(bool left, bool right)
-    {
-        if (left && right &&
-            leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-            rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))
-            dualAnimator.SetTrigger("Negative");
-
-        else if (left && 
-            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-            leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))
-            leftAnimator.SetTrigger("Negative");
-
-        else if (right && 
-            dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-            rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))
-            rightAnimator.SetTrigger("Negative");
+        rightAnimator.ResetTrigger("Positive");
+        rightAnimator.ResetTrigger("Negative");
+        rightAnimator.SetBool("Hold", false);
     }
 }

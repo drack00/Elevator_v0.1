@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using UnityStandardAssets.CrossPlatformInput;
 
 public class Player : AnimatedMovingObject
@@ -71,28 +72,224 @@ public class Player : AnimatedMovingObject
         root.transform.rotation = cam.transform.rotation;
 
         //change active moveset
-        if (_activeMoveSet != activeMoveSet && !lockActiveMoveSet)
+        if (_activeMoveSet != activeMoveSet)
             activeMoveSet = activeMoveSet;
     }
     public override void NextAction()
     {
         if ((blockingMask & BlockingMask.Action) != 0)
         {
+            foreach(MoveSet moveSet in moveSets)
+            {
+                moveSet.Reset();
+            }
+
             animator.ResetTrigger("Jump");
+            animator.SetBool("Jump", false);
 
             return;
         }
 
-        //moveset animator inputs
-        activeMoveSet.SetPositiveInput(CrossPlatformInputManager.GetButtonDown("Fire1"), CrossPlatformInputManager.GetButtonDown("Fire2"));
-        activeMoveSet.SetNegativeInput(CrossPlatformInputManager.GetButtonUp("Fire1"), CrossPlatformInputManager.GetButtonUp("Fire2"));
-        activeMoveSet.ToggleHoldInput(CrossPlatformInputManager.GetButton("Fire1"), CrossPlatformInputManager.GetButton("Fire2"));
+        //get relevent movesets
+        MoveSet dualActiveMoveSet = activeMoveSet;
+        MoveSet leftActiveMoveSet = activeMoveSet;
+        MoveSet rightActiveMoveSet = activeMoveSet;
+        foreach (MoveSet moveSet in moveSets)
+        {
+            if (dualActiveMoveSet != moveSet && moveSet.activeInputs == MoveSet.ActiveInputs.Dual)
+                dualActiveMoveSet = moveSet;
+            if (leftActiveMoveSet != moveSet && moveSet.activeInputs == MoveSet.ActiveInputs.Left)
+                leftActiveMoveSet = moveSet;
+            if (rightActiveMoveSet != moveSet && moveSet.activeInputs == MoveSet.ActiveInputs.Right)
+                rightActiveMoveSet = moveSet;
+        }
+
+        //generate psuedo-moveset
+        if (leftActiveMoveSet == rightActiveMoveSet)
+            psuedoMoveSet = new PsuedoMoveSet(dualActiveMoveSet);
+        else
+            psuedoMoveSet = new PsuedoMoveSet(leftActiveMoveSet, rightActiveMoveSet);
+        psuedoMoveSet.Do();
 
         //primary animator inputs
         if (CrossPlatformInputManager.GetButtonDown("Jump"))
             animator.SetTrigger("JumpEdge");
         animator.SetBool("Jump", CrossPlatformInputManager.GetButton("Jump"));
     }
+
+    private class PsuedoMoveSet
+    {
+        private Animator[] allOtherAnimators
+        {
+            get
+            {
+                List<Animator> _allOtherAnimators = new List<Animator>(MoveSet.GetMoveSet(dualAnimator).transform.parent.GetComponentsInChildren<Animator>());
+
+                if (_allOtherAnimators.Contains(dualAnimator))
+                    _allOtherAnimators.Remove(dualAnimator);
+                if (_allOtherAnimators.Contains(leftAnimator))
+                    _allOtherAnimators.Remove(leftAnimator);
+                if (_allOtherAnimators.Contains(rightAnimator))
+                    _allOtherAnimators.Remove(rightAnimator);
+
+                return _allOtherAnimators.ToArray();
+            }
+        }
+        private GameObject[] allOtherGizmos
+        {
+            get
+            {
+                List<GameObject> _allOtherGizmos = new List<GameObject>();
+
+                foreach (MoveSet moveSet in MoveSet.allMoveSets)
+                {
+                    _allOtherGizmos.Add(moveSet.dualGizmo0);
+                    _allOtherGizmos.Add(moveSet.dualGizmo1);
+                    _allOtherGizmos.Add(moveSet.leftGizmo);
+                    _allOtherGizmos.Add(moveSet.rightGizmo);
+                }
+
+                if (_allOtherGizmos.Contains(dualGizmo0))
+                    _allOtherGizmos.Remove(dualGizmo0);
+                if (_allOtherGizmos.Contains(dualGizmo1))
+                    _allOtherGizmos.Remove(dualGizmo1);
+                if (_allOtherGizmos.Contains(leftGizmo))
+                    _allOtherGizmos.Remove(leftGizmo);
+                if (_allOtherGizmos.Contains(rightGizmo))
+                    _allOtherGizmos.Remove(rightGizmo);
+
+                return _allOtherGizmos.ToArray();
+            }
+        }
+
+        Animator dualAnimator = null, leftAnimator, rightAnimator;
+        GameObject dualGizmo0 = null, dualGizmo1 = null, leftGizmo, rightGizmo;
+
+        public PsuedoMoveSet(MoveSet _moveSet)
+        {
+            dualAnimator = _moveSet.dualAnimator;
+            leftAnimator = _moveSet.leftAnimator;
+            rightAnimator = _moveSet.rightAnimator;
+
+            dualGizmo0 = _moveSet.dualGizmo0;
+            dualGizmo1 = _moveSet.dualGizmo1;
+            leftGizmo = _moveSet.leftGizmo;
+            rightGizmo = _moveSet.rightGizmo;
+        }
+        public PsuedoMoveSet(MoveSet _leftMoveSet, MoveSet _rightMoveSet)
+        {
+            leftAnimator = _leftMoveSet.leftAnimator;
+            rightAnimator = _rightMoveSet.rightAnimator;
+
+            leftGizmo = _leftMoveSet.leftGizmo;
+            rightGizmo = _rightMoveSet.rightGizmo;
+        }
+
+        public void ShowGizmos()
+        {
+            if (dualAnimator != null)
+                dualGizmo0.SetActive(MoveSet.GetMoveSet(dualAnimator).activeInputs == MoveSet.ActiveInputs.Dual);
+            leftGizmo.SetActive((dualAnimator == null || !dualGizmo0.activeSelf));
+            if (dualAnimator != null)
+                dualGizmo1.SetActive(MoveSet.GetMoveSet(dualAnimator).activeInputs == MoveSet.ActiveInputs.Dual);
+            rightGizmo.SetActive((dualAnimator == null || !dualGizmo1.activeSelf));
+        }
+
+        public void Do()
+        {
+            //get raw inputs
+            bool leftPositive = CrossPlatformInputManager.GetButtonDown("Fire1");
+            bool rightPositive = CrossPlatformInputManager.GetButtonDown("Fire2");
+            bool leftNegative = CrossPlatformInputManager.GetButtonUp("Fire1");
+            bool rightNegative = CrossPlatformInputManager.GetButtonUp("Fire2");
+            bool leftHold = CrossPlatformInputManager.GetButton("Fire1");
+            bool rightHold = CrossPlatformInputManager.GetButton("Fire2");
+
+            //check for dual inputs
+            bool dualPositive = 
+                dualAnimator != null &&
+                leftPositive && rightPositive &&
+                dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+                leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest");
+            bool dualNegative =
+                dualAnimator != null &&
+                leftNegative && rightNegative &&
+                dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge") &&
+                leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest");
+            bool dualHold =
+                dualAnimator != null &&
+                leftHold && rightHold && (
+                (dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && (
+                    leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge") || 
+                    rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))) ||
+                ((dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) &&
+                    (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))));
+
+            //set relevent inputs
+            if (dualPositive)
+            {
+                dualAnimator.SetTrigger("Positive");
+            }
+            else if(!dualHold)
+            {
+                if (leftPositive &&
+                    leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+                    dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                    leftAnimator.SetTrigger("Positive");
+                if (rightPositive &&
+                    rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+                    dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                    rightAnimator.SetTrigger("Positive");
+            }
+            if (dualNegative)
+            {
+                dualAnimator.SetTrigger("Negative");
+            }
+            else if (!dualHold)
+            {
+                if (leftNegative &&
+                    leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge") &&
+                    dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                    leftAnimator.SetTrigger("Negative");
+                if (rightNegative &&
+                    rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge") &&
+                    dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                    rightAnimator.SetTrigger("Negative");
+            }
+            if (dualHold)
+            {
+                dualAnimator.SetBool("Hold", true);
+
+                leftAnimator.SetBool("Hold", false);
+                rightAnimator.SetBool("Hold", false);
+            }
+            else
+            {
+                dualAnimator.SetBool("Hold", false);
+
+                leftAnimator.SetBool("Hold",
+                    leftHold && (
+                    (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+                        dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) ||
+                    ((leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) &&
+                        dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))));
+                rightAnimator.SetBool("Hold",
+                    rightHold && (
+                    (rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
+                        dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) ||
+                    ((rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) &&
+                        dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))));
+            }
+
+            foreach (Animator otherAnimator in allOtherAnimators)
+            {
+                otherAnimator.ResetTrigger("Positive");
+                otherAnimator.ResetTrigger("Negative");
+                otherAnimator.SetBool("Hold", false);
+            }
+        }
+    }
+    private PsuedoMoveSet psuedoMoveSet;
 
     public Camera cam;
     private float pitch = 0f;
@@ -102,17 +299,12 @@ public class Player : AnimatedMovingObject
     public float ySensitivity = 2f;
 
     [HideInInspector]
-    public bool lockActiveMoveSet = false;
-    [HideInInspector]
     public MoveSet[] moveSets;
-	private MoveSet _activeMoveSet;
+	private MoveSet _activeMoveSet = null;
 	public MoveSet activeMoveSet
     {
 		get
         {
-            if (lockActiveMoveSet)
-                return _activeMoveSet;
-
 			Quaternion[] _moveSets = new Quaternion[moveSets.Length];
 			for (int i = 0; i < _moveSets.Length; i++)
             {
@@ -122,9 +314,6 @@ public class Player : AnimatedMovingObject
 		}
 		set
         {
-            if (lockActiveMoveSet)
-                return;
-
 			_activeMoveSet = value;
 
 			foreach(MoveSet moveSet in moveSets)
@@ -150,6 +339,9 @@ public class Player : AnimatedMovingObject
     {
         //update base class
         base.Update ();
+
+        //
+        psuedoMoveSet.ShowGizmos();
 
         //dont continue if time scale is approximitly 0
         if (Mathf.Abs(Time.timeScale) < float.Epsilon) return;
