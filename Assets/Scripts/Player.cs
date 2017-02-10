@@ -123,9 +123,9 @@ public class Player : AnimatedMovingObject
         {
             get
             {
-                List<Animator> _allOtherAnimators = new List<Animator>(MoveSet.GetMoveSet(dualAnimator).transform.parent.GetComponentsInChildren<Animator>());
+                List<Animator> _allOtherAnimators = new List<Animator>(MoveSet.GetMoveSet(leftAnimator).transform.parent.GetComponentsInChildren<Animator>());
 
-                if (_allOtherAnimators.Contains(dualAnimator))
+                if (dualAnimator != null && _allOtherAnimators.Contains(dualAnimator))
                     _allOtherAnimators.Remove(dualAnimator);
                 if (_allOtherAnimators.Contains(leftAnimator))
                     _allOtherAnimators.Remove(leftAnimator);
@@ -234,11 +234,11 @@ public class Player : AnimatedMovingObject
             {
                 if (leftPositive &&
                     leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-                    dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                    (dualAnimator == null || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")))
                     leftAnimator.SetTrigger("Positive");
                 if (rightPositive &&
                     rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-                    dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                    (dualAnimator == null || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")))
                     rightAnimator.SetTrigger("Positive");
             }
             if (dualNegative)
@@ -249,11 +249,11 @@ public class Player : AnimatedMovingObject
             {
                 if (leftNegative &&
                     leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge") &&
-                    dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                    (dualAnimator == null || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")))
                     leftAnimator.SetTrigger("Negative");
                 if (rightNegative &&
                     rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge") &&
-                    dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+                    (dualAnimator == null || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")))
                     rightAnimator.SetTrigger("Negative");
             }
             if (dualHold)
@@ -265,20 +265,21 @@ public class Player : AnimatedMovingObject
             }
             else
             {
-                dualAnimator.SetBool("Hold", false);
+                if (dualAnimator != null)
+                    dualAnimator.SetBool("Hold", false);
 
                 leftAnimator.SetBool("Hold",
                     leftHold && (
                     (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-                        dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) ||
+                        (dualAnimator != null && dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))) ||
                     ((leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) &&
-                        dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))));
+                        (dualAnimator == null || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")))));
                 rightAnimator.SetBool("Hold",
                     rightHold && (
                     (rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
-                        dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) ||
+                        (dualAnimator != null && dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))) ||
                     ((rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) &&
-                        dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))));
+                        (dualAnimator == null || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")))));
             }
 
             foreach (Animator otherAnimator in allOtherAnimators)
