@@ -210,7 +210,7 @@ public class Player : AnimatedMovingObject
                     (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))));
 
             //set active animator
-            bool isDualActive = dualPositive || dualNegative || dualHold;
+            bool isDualActive = dualPositive || dualNegative || dualHold || (dualAnimator != null && !dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"));
             if (dualAnimator != null)
                 dualAnimator.SetBool("Active", isDualActive);
             leftAnimator.SetBool("Active", !isDualActive);
