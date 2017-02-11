@@ -8,7 +8,11 @@ public class Player : AnimatedMovingObject
     public override void SetGrounded(bool _grounded)
     {
         base.SetGrounded(_grounded);
-        activeMoveSet.ToggleGrounded(_grounded);
+
+        foreach (MoveSet moveSet in moveSets)
+        {
+            moveSet.ToggleGrounded(_grounded);
+        }
     }
     private Vector2 wallDirection = Vector2.zero;
     public override void SetWallDirection(Vector2 _wallDirection)
@@ -73,7 +77,7 @@ public class Player : AnimatedMovingObject
             activeMoveSet = activeMoveSet;
 
         //align psuedo-moveset and toggle gizmos
-        psuedoMoveSet.AlignAndToggle(root);
+        psuedoMoveSet.Align(root);
     }
     public override void NextAction()
     {
@@ -135,59 +139,24 @@ public class Player : AnimatedMovingObject
                 return _allOtherAnimators.ToArray();
             }
         }
-        private GameObject[] allOtherGizmos
-        {
-            get
-            {
-                List<GameObject> _allOtherGizmos = new List<GameObject>();
-
-                foreach (MoveSet moveSet in MoveSet.allMoveSets)
-                {
-                    _allOtherGizmos.Add(moveSet.dualGizmo0);
-                    _allOtherGizmos.Add(moveSet.dualGizmo1);
-                    _allOtherGizmos.Add(moveSet.leftGizmo);
-                    _allOtherGizmos.Add(moveSet.rightGizmo);
-                }
-
-                if (_allOtherGizmos.Contains(dualGizmo0))
-                    _allOtherGizmos.Remove(dualGizmo0);
-                if (_allOtherGizmos.Contains(dualGizmo1))
-                    _allOtherGizmos.Remove(dualGizmo1);
-                if (_allOtherGizmos.Contains(leftGizmo))
-                    _allOtherGizmos.Remove(leftGizmo);
-                if (_allOtherGizmos.Contains(rightGizmo))
-                    _allOtherGizmos.Remove(rightGizmo);
-
-                return _allOtherGizmos.ToArray();
-            }
-        }
 
         Animator dualAnimator = null, leftAnimator, rightAnimator;
-        GameObject dualGizmo0 = null, dualGizmo1 = null, leftGizmo, rightGizmo;
 
         public PsuedoMoveSet(MoveSet _moveSet)
         {
             dualAnimator = _moveSet.dualAnimator;
             leftAnimator = _moveSet.leftAnimator;
             rightAnimator = _moveSet.rightAnimator;
-
-            dualGizmo0 = _moveSet.dualGizmo0;
-            dualGizmo1 = _moveSet.dualGizmo1;
-            leftGizmo = _moveSet.leftGizmo;
-            rightGizmo = _moveSet.rightGizmo;
         }
         public PsuedoMoveSet(MoveSet _leftMoveSet, MoveSet _rightMoveSet)
         {
             leftAnimator = _leftMoveSet.leftAnimator;
             rightAnimator = _rightMoveSet.rightAnimator;
-
-            leftGizmo = _leftMoveSet.leftGizmo;
-            rightGizmo = _rightMoveSet.rightGizmo;
         }
 
-        public void AlignAndToggle(Transform root)
+        public void Align(Transform root)
         {
-            //enable displayed gizmos, and align displayed animators
+            //align displayed animators
             if (dualAnimator != null)
             {
                 if (dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))
@@ -195,26 +164,16 @@ public class Player : AnimatedMovingObject
                     dualAnimator.transform.position = root.position;
                     dualAnimator.transform.rotation = root.rotation;
                 }
-                dualGizmo0.SetActive(MoveSet.GetMoveSet(dualAnimator).activeInputs == MoveSet.ActiveInputs.Dual);
-                dualGizmo1.SetActive(MoveSet.GetMoveSet(dualAnimator).activeInputs == MoveSet.ActiveInputs.Dual);
             }
             if (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") || leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))
             {
                 leftAnimator.transform.position = root.position;
                 leftAnimator.transform.rotation = root.rotation;
             }
-            leftGizmo.SetActive((dualAnimator == null || !dualGizmo0.activeSelf));
             if (rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") || rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge"))
             {
                 rightAnimator.transform.position = root.position;
                 rightAnimator.transform.rotation = root.rotation;
-            }
-            rightGizmo.SetActive((dualAnimator == null || !dualGizmo1.activeSelf));
-
-            //disable other gizmos
-            foreach(GameObject gizmo in allOtherGizmos)
-            {
-                gizmo.SetActive(false);
             }
         }
 
@@ -249,7 +208,14 @@ public class Player : AnimatedMovingObject
                         leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")))) ||
                 ((dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) &&
                     (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))));
-            
+
+            //set active animator
+            bool isDualActive = dualPositive || dualNegative || dualHold;
+            if (dualAnimator != null)
+                dualAnimator.SetBool("Active", isDualActive);
+            leftAnimator.SetBool("Active", !isDualActive);
+            rightAnimator.SetBool("Active", !isDualActive);
+
             //set relevent inputs
             if (dualPositive)
             {
@@ -307,8 +273,10 @@ public class Player : AnimatedMovingObject
                         (dualAnimator == null || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")))));
             }
 
+            //reset all other moveset animators
             foreach (Animator otherAnimator in allOtherAnimators)
             {
+                otherAnimator.SetBool("Active", false);
                 otherAnimator.ResetTrigger("Positive");
                 otherAnimator.ResetTrigger("Negative");
                 otherAnimator.SetBool("Hold", false);
@@ -341,11 +309,6 @@ public class Player : AnimatedMovingObject
 		set
         {
 			_activeMoveSet = value;
-
-			foreach(MoveSet moveSet in moveSets)
-            {
-                moveSet.ToggleActive(moveSet == _activeMoveSet);
-            }
 		}
 	}
 

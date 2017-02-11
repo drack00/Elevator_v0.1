@@ -59,8 +59,6 @@ public class MoveSet : MonoBehaviour
     public Animator rightAnimator;
     public float xRotation;
 
-    public GameObject dualGizmo0, dualGizmo1, leftGizmo, rightGizmo;
-
     public void ToggleActive(bool _active)
     {
         dualAnimator.SetBool("Active", _active);
