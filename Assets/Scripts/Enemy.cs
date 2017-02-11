@@ -13,10 +13,6 @@ public class Enemy : AnimatedMovingObject
         }
     }
 
-    public override Vector3 GetFocus()
-    {
-        return new Vector3(root.forward.x, 0f, root.forward.z).normalized;
-    }
     public override Vector2 GetInput()
     {
         if ((blockingMask & BlockingMask.Movement) != 0)

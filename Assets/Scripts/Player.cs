@@ -41,10 +41,6 @@ public class Player : AnimatedMovingObject
         return speed;
     }
 
-    public override Vector3 GetFocus()
-    {
-        return new Vector3(root.forward.x, 0f, root.forward.z).normalized;
-    }
     public override Vector2 GetInput()
     {
         if ((blockingMask & BlockingMask.Movement) != 0)
@@ -69,6 +65,7 @@ public class Player : AnimatedMovingObject
             return;
 
         //recenter camera
+        root.transform.position = cam.transform.position;
         root.transform.rotation = cam.transform.rotation;
 
         //change active moveset
@@ -103,6 +100,9 @@ public class Player : AnimatedMovingObject
             if (rightActiveMoveSet != moveSet && moveSet.activeInputs == MoveSet.ActiveInputs.Right)
                 rightActiveMoveSet = moveSet;
         }
+
+        //
+
 
         //generate psuedo-moveset
         if (leftActiveMoveSet == rightActiveMoveSet)
@@ -185,14 +185,28 @@ public class Player : AnimatedMovingObject
             rightGizmo = _rightMoveSet.rightGizmo;
         }
 
-        public void ShowGizmos()
+        public void AlignAndToggle(Transform root)
         {
+            //enable displayed gizmos, and align displayed animators
             if (dualAnimator != null)
+            {
+                dualAnimator.transform.position = root.position;
+                dualAnimator.transform.rotation = root.rotation;
                 dualGizmo0.SetActive(MoveSet.GetMoveSet(dualAnimator).activeInputs == MoveSet.ActiveInputs.Dual);
-            leftGizmo.SetActive((dualAnimator == null || !dualGizmo0.activeSelf));
-            if (dualAnimator != null)
                 dualGizmo1.SetActive(MoveSet.GetMoveSet(dualAnimator).activeInputs == MoveSet.ActiveInputs.Dual);
+            }
+            leftAnimator.transform.position = root.position;
+            leftAnimator.transform.rotation = root.rotation;
+            leftGizmo.SetActive((dualAnimator == null || !dualGizmo0.activeSelf));
+            rightAnimator.transform.position = root.position;
+            rightAnimator.transform.rotation = root.rotation;
             rightGizmo.SetActive((dualAnimator == null || !dualGizmo1.activeSelf));
+
+            //disable other gizmos
+            foreach(GameObject gizmo in allOtherGizmos)
+            {
+                gizmo.SetActive(false);
+            }
         }
 
         public void Do()
@@ -226,7 +240,7 @@ public class Player : AnimatedMovingObject
                         leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")))) ||
                 ((dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge") || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge")) &&
                     (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))));
-
+            
             //set relevent inputs
             if (dualPositive)
             {
@@ -344,7 +358,7 @@ public class Player : AnimatedMovingObject
         base.Update ();
 
         //
-        psuedoMoveSet.ShowGizmos();
+        psuedoMoveSet.AlignAndToggle(root);
 
         //dont continue if time scale is approximitly 0
         if (Mathf.Abs(Time.timeScale) < float.Epsilon) return;

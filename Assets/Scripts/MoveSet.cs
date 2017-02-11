@@ -57,14 +57,7 @@ public class MoveSet : MonoBehaviour
     public Animator dualAnimator;
     public Animator leftAnimator;
     public Animator rightAnimator;
-    [HideInInspector]
-    public UIGizmo[] gizmo;
     public float xRotation;
-
-    void Awake()
-    {
-        gizmo = GetComponentsInChildren<UIGizmo>();
-    }
 
     public GameObject dualGizmo0, dualGizmo1, leftGizmo, rightGizmo;
 

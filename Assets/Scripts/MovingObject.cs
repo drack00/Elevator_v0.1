@@ -26,7 +26,7 @@ public class MovingObject : MonoBehaviour
     //functionality overrides
     public virtual Vector3 GetFocus()
     {
-        return root.forward;
+        return Quaternion.Euler(0f, root.eulerAngles.y, 0f) * Vector3.forward;
     }
     public virtual Vector2 GetInput()
     {
