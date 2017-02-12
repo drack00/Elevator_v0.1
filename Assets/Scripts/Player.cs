@@ -105,13 +105,19 @@ public class Player : AnimatedMovingObject
         MoveSet rightActiveMoveSet = activeMoveSet;
         foreach (MoveSet moveSet in moveSets)
         {
-            if (dualActiveMoveSet != moveSet && moveSet.activeInputs == MoveSet.ActiveInputs.Dual)
+            if (moveSet.activeInputs == MoveSet.ActiveInputs.Dual)
                 dualActiveMoveSet = moveSet;
-            if (leftActiveMoveSet != moveSet && moveSet.activeInputs == MoveSet.ActiveInputs.Left)
+            if (moveSet.activeInputs == MoveSet.ActiveInputs.Left)
                 leftActiveMoveSet = moveSet;
-            if (rightActiveMoveSet != moveSet && moveSet.activeInputs == MoveSet.ActiveInputs.Right)
+            if (moveSet.activeInputs == MoveSet.ActiveInputs.Right)
                 rightActiveMoveSet = moveSet;
         }
+        if (dualActiveMoveSet.canCancelInputs == MoveSet.ActiveInputs.Dual)
+            dualActiveMoveSet = activeMoveSet;
+        if (leftActiveMoveSet.canCancelInputs == MoveSet.ActiveInputs.Left)
+            leftActiveMoveSet = activeMoveSet;
+        if (rightActiveMoveSet.canCancelInputs == MoveSet.ActiveInputs.Right)
+            rightActiveMoveSet = activeMoveSet;
 
         //generate psuedo-moveset and set inputs
         if (leftActiveMoveSet == rightActiveMoveSet)
@@ -276,7 +282,7 @@ public class Player : AnimatedMovingObject
             //reset all other moveset animators
             foreach (Animator otherAnimator in allOtherAnimators)
             {
-                otherAnimator.SetBool("Active", false);
+                otherAnimator.SetBool("Active", otherAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCancel"));
                 otherAnimator.ResetTrigger("Positive");
                 otherAnimator.ResetTrigger("Negative");
                 otherAnimator.SetBool("Hold", false);

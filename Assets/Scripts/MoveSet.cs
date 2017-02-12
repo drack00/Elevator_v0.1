@@ -53,6 +53,20 @@ public class MoveSet : MonoBehaviour
             return 0;
         }
     }
+    public ActiveInputs canCancelInputs
+    {
+        get
+        {
+            if (dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCancel") || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge"))
+                return ActiveInputs.Dual;
+            if (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCancel") || leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge"))
+                return ActiveInputs.Left;
+            if (rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCancel") || rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge"))
+                return ActiveInputs.Right;
+
+            return 0;
+        }
+    }
 
     public Animator dualAnimator;
     public Animator leftAnimator;

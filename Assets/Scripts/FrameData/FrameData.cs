@@ -4,7 +4,6 @@ using System.Collections.Generic;
 
 public class FrameData : MonoBehaviour
 {
-    [HideInInspector]
     public new Collider collider;
     [HideInInspector]
     public new Rigidbody rigidbody;
@@ -132,7 +131,8 @@ public class FrameData : MonoBehaviour
 
     public virtual void Awake()
     {
-        collider = GetComponent<Collider>();
+        if (collider == null)
+            collider = GetComponent<Collider>();
         rigidbody = collider.attachedRigidbody;
         mo = rigidbody.GetComponent<MovingObject>();
     }
