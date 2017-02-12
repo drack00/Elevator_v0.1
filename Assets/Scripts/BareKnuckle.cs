@@ -10,10 +10,10 @@ public class BareKnuckle : MoveSet
         leftAnimator.SetBool("Grab", _grab);
         rightAnimator.SetBool("Grab", _grab);
     }
-    public void ToggleWalled(Vector2 _walled)
+    public void ToggleWalled(Vector3 _walled)
     {
-        dualAnimator.SetBool("Walled", _walled.y > 0.5f);
-        leftAnimator.SetBool("Walled", _walled.x > 0.1f);
-        rightAnimator.SetBool("Walled", _walled.x < -0.1f);
+        dualAnimator.SetBool("Walled", _walled.z > 0.5f);
+        leftAnimator.SetBool("Walled", _walled.x > 0.1f && _walled.z <= 0.5f);
+        rightAnimator.SetBool("Walled", _walled.x < -0.1f && _walled.z <= 0.5f);
     }
 }

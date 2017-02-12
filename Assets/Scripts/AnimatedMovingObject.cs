@@ -40,14 +40,14 @@ public class AnimatedMovingObject : MovingObject
     {
         return animator.GetBool("Capped");
     }
-    public override void SetWallDirection(Vector2 _wallDirection)
+    public override void SetWallDirection(Vector3 _wallDirection)
     {
         animator.SetFloat("Walled_X", _wallDirection.x);
         animator.SetFloat("Walled_Y", _wallDirection.y);
     }
-    public override Vector2 GetWallDirection()
+    public override Vector3 GetWallDirection()
     {
-        return new Vector2(animator.GetFloat("Walled_X"), animator.GetFloat("Walled_Y"));
+        return new Vector3(animator.GetFloat("Walled_X"), 0.0f, animator.GetFloat("Walled_Y"));
     }
     public override void SetGrab(bool _grab)
     {

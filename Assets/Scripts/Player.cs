@@ -14,13 +14,13 @@ public class Player : AnimatedMovingObject
             moveSet.ToggleGrounded(_grounded);
         }
     }
-    private Vector2 wallDirection = Vector2.zero;
-    public override void SetWallDirection(Vector2 _wallDirection)
+    private Vector3 wallDirection = Vector3.zero;
+    public override void SetWallDirection(Vector3 _wallDirection)
     {
         wallDirection = _wallDirection;
-        (moveSets[0] as BareKnuckle).ToggleWalled(_wallDirection);
+        (moveSets[0] as BareKnuckle).ToggleWalled(Quaternion.Inverse(Quaternion.LookRotation(GetFocus())) * _wallDirection);
     }
-    public override Vector2 GetWallDirection()
+    public override Vector3 GetWallDirection()
     {
         return wallDirection;
     }
