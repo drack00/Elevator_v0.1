@@ -105,12 +105,15 @@ public class Player : AnimatedMovingObject
         MoveSet rightActiveMoveSet = activeMoveSet;
         foreach (MoveSet moveSet in moveSets)
         {
-            if (moveSet.activeInputs == MoveSet.ActiveInputs.Dual)
-                dualActiveMoveSet = moveSet;
-            if (moveSet.activeInputs == MoveSet.ActiveInputs.Left)
-                leftActiveMoveSet = moveSet;
-            if (moveSet.activeInputs == MoveSet.ActiveInputs.Right)
-                rightActiveMoveSet = moveSet;
+            if (moveSet != activeMoveSet)
+            {
+                if (moveSet.activeInputs == MoveSet.ActiveInputs.Dual)
+                    dualActiveMoveSet = moveSet;
+                if (moveSet.activeInputs == MoveSet.ActiveInputs.Left)
+                    leftActiveMoveSet = moveSet;
+                if (moveSet.activeInputs == MoveSet.ActiveInputs.Right)
+                    rightActiveMoveSet = moveSet;
+            }
         }
         if (dualActiveMoveSet.canCancelInputs == MoveSet.ActiveInputs.Dual)
             dualActiveMoveSet = activeMoveSet;
@@ -216,7 +219,7 @@ public class Player : AnimatedMovingObject
                     (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))));
 
             //set active animator
-            bool isDualActive = dualPositive || dualNegative || dualHold || (dualAnimator != null && !dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"));
+            bool isDualActive = dualAnimator != null && !dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest");
             if (dualAnimator != null)
                 dualAnimator.SetBool("Active", isDualActive);
             leftAnimator.SetBool("Active", !isDualActive);
@@ -264,7 +267,7 @@ public class Player : AnimatedMovingObject
             {
                 if (dualAnimator != null)
                     dualAnimator.SetBool("Hold", false);
-
+                
                 leftAnimator.SetBool("Hold",
                     leftHold && (
                     (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") &&
@@ -282,7 +285,7 @@ public class Player : AnimatedMovingObject
             //reset all other moveset animators
             foreach (Animator otherAnimator in allOtherAnimators)
             {
-                otherAnimator.SetBool("Active", otherAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCancel") || otherAnimator.GetCurrentAnimatorStateInfo(0).IsTag("CanCharge"));
+                otherAnimator.SetBool("Active", !otherAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"));
                 otherAnimator.ResetTrigger("Positive");
                 otherAnimator.ResetTrigger("Negative");
                 otherAnimator.SetBool("Hold", false);
