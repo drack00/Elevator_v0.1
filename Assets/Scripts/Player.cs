@@ -285,7 +285,7 @@ public class Player : AnimatedMovingObject
             //reset all other moveset animators
             foreach (Animator otherAnimator in allOtherAnimators)
             {
-                otherAnimator.SetBool("Active", !otherAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"));
+                otherAnimator.SetBool("Active", !otherAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && !otherAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1"));
                 otherAnimator.ResetTrigger("Positive");
                 otherAnimator.ResetTrigger("Negative");
                 otherAnimator.SetBool("Hold", false);

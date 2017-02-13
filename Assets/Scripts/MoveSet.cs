@@ -43,11 +43,11 @@ public class MoveSet : MonoBehaviour
     {
         get
         {
-            if (!dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+            if (!dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && !dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1"))
                 return ActiveInputs.Dual;
-            if (!leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+            if (!leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && !leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1"))
                 return ActiveInputs.Left;
-            if (!rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest"))
+            if (!rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") && !rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1"))
                 return ActiveInputs.Right;
 
             return 0;
