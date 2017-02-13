@@ -526,6 +526,7 @@ public class MovingObject : MonoBehaviour
             
         }
 
-        if (dropForce != null) dropForce.enabled = !(GetGrounded() || rigidbody.velocity.y > 0f);
+        if (dropForce != null)dropForce.enabled = !GetGrounded() && rigidbody.velocity.y <= 0f && rigidbody.useGravity;
+
     }
 }
