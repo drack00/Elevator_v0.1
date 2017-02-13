@@ -196,8 +196,8 @@ public class MovingObject : MonoBehaviour
 
         //floor check
         if (Physics.SphereCast(transform.position, extents.magnitude, Vector3.down, out hitInfo,
-                               (height - extents.magnitude) + 
-                               advancedSettings.groundCheckDistance))
+                               (height - extents.magnitude) + advancedSettings.groundCheckDistance,
+                               LayerMask.GetMask("Enviroment")))
         {
             SetGrounded(true);
             m_GroundContactNormal = hitInfo.normal;
@@ -210,8 +210,8 @@ public class MovingObject : MonoBehaviour
 
         //ceiling check
         if (Physics.SphereCast(transform.position, extents.magnitude, Vector3.up, out hitInfo,
-                               (height - extents.magnitude) +
-                               advancedSettings.groundCheckDistance))
+                               (height - extents.magnitude) + advancedSettings.groundCheckDistance,
+                               LayerMask.GetMask("Enviroment")))
         {
             SetCapped(true);
         }
@@ -242,11 +242,13 @@ public class MovingObject : MonoBehaviour
 
                 //wall check at test direction
                 if (Physics.SphereCast(transform.position, extents.magnitude, testDir, out hitInfo,
-                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance))
+                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance,
+                                       LayerMask.GetMask("Enviroment")))
                     wallDir0 = testDir;
                 //cast backwards for safety, exclude collisions with self
                 else if(Physics.SphereCast(transform.position + (testDir * ((height - extents.magnitude) + advancedSettings.groundCheckDistance)), extents.magnitude, -1 * testDir, out hitInfo,
-                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance) &&
+                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance,
+                                       LayerMask.GetMask("Enviroment")) &&
                                        hitInfo.collider.attachedRigidbody != rigidbody)
                     wallDir0 = testDir;
 
@@ -275,11 +277,13 @@ public class MovingObject : MonoBehaviour
 
                 //wall check at test direction
                 if (Physics.SphereCast(transform.position, extents.magnitude, testDir, out hitInfo,
-                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance))
+                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance,
+                                       LayerMask.GetMask("Enviroment")))
                     wallDir1 = testDir;
                 //cast backwards for safety, exclude collisions with self
                 else if (Physics.SphereCast(transform.position + (testDir * ((height - extents.magnitude) + advancedSettings.groundCheckDistance)), extents.magnitude, -1 * testDir, out hitInfo,
-                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance) &&
+                                       (height - extents.magnitude) + advancedSettings.groundCheckDistance,
+                                       LayerMask.GetMask("Enviroment")) &&
                                        hitInfo.collider.attachedRigidbody != rigidbody)
                     wallDir1 = testDir;
 
