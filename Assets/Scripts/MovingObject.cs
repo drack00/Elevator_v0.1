@@ -159,7 +159,7 @@ public class MovingObject : MonoBehaviour
     private Vector3 m_GroundContactNormal;
     private bool m_PreviouslyGrounded, m_PreviouslyCapped;
     private Vector3 m_PreviousWallDirection;
-        private float wallCheckSmoothing = 0.2f;
+    private float wallCheckSmoothing = 0.2f;
     private float SlopeMultiplier()
     {
         float angle = Vector3.Angle(m_GroundContactNormal, Vector3.up);
