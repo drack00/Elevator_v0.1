@@ -13,7 +13,6 @@ public class FrameData : MonoBehaviour
     [System.Serializable]
     public class ApplyMovement
     {
-        public bool additive = true;
         public SortVectors.ApplyType type;
         public SortVectors.Flatten flatten;
         public Vector3 amount;
@@ -42,10 +41,7 @@ public class FrameData : MonoBehaviour
                     hit.collider.transform.position, hit.collider.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
                     hurt.collider.transform.position, hurt.collider.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus())) * multiplier;
 
-                if (additive)
-                    hurt.rigidbody.AddForce(vector, ForceMode.VelocityChange);
-                else
-                    hurt.rigidbody.velocity = vector;
+                hurt.rigidbody.AddForce(vector, ForceMode.VelocityChange);
             }
             else
             {
@@ -53,25 +49,18 @@ public class FrameData : MonoBehaviour
                     hit.collider.transform.position, hit.collider.transform.rotation, hit.mo.transform.position, Quaternion.LookRotation(hit.mo.GetFocus()),
                     hurt.collider.transform.position, hurt.collider.transform.rotation, hurt.mo.transform.position, Quaternion.LookRotation(hurt.mo.GetFocus()))).eulerAngles * multiplier;
 
-                if (additive)
-                    hurt.rigidbody.AddTorque(vector, ForceMode.VelocityChange);
-                else
-                    hurt.rigidbody.angularVelocity = vector;
+                hurt.rigidbody.AddTorque(vector, ForceMode.VelocityChange);
             }
         }
     }
     [System.Serializable]
     public class ApplyStat
     {
-        public bool additive = true;
         public float amount;
 
         public float Do(float refAmount)
         {
-            if (additive)
-                return refAmount + amount;
-            else
-                return amount;
+            return refAmount + amount;
         }
     }
 

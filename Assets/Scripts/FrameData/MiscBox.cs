@@ -5,7 +5,6 @@ public class MiscBox : ActiveFrameData
 {
     [EnumFlag("Blocking Mask")]
     public MovingObject.BlockingMask blockingMask;
-    public bool additive = true;
 
     public Behaviour enableBehaviour;
 	public Behaviour disableBehaviour;
@@ -13,8 +12,7 @@ public class MiscBox : ActiveFrameData
 
     public void OnEnable()
     {
-        if (additive)
-            mo.blockingMask |= blockingMask;
+        mo.blockingMask |= blockingMask;
 
         enableBehaviour.Do(false, this);
     }
@@ -23,14 +21,5 @@ public class MiscBox : ActiveFrameData
         mo.blockingMask ^= blockingMask;
         
         disableBehaviour.Do(false, this);
-    }
-    public void Update ()
-    {
-        if (additive)
-            mo.blockingMask |= blockingMask;
-        else
-            mo.blockingMask = blockingMask;
-
-        updateBehaviour.Do(true, this);
     }
 }
