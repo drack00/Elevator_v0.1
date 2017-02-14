@@ -18,7 +18,7 @@ public class MiscBox : ActiveFrameData
     }
     public void OnDisable()
     {
-        mo.blockingMask ^= blockingMask;
+        mo.blockingMask = mo.blockingMask & (mo.blockingMask ^ blockingMask);
         
         disableBehaviour.Do(false, this);
     }
