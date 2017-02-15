@@ -60,7 +60,9 @@ public class Player : AnimatedMovingObject
         {
             animator.SetTrigger("Jump");
             if (!GetGrounded() && GetWallDirection() == Vector3.zero && !GetCapped())
+            {
                 aerialAction = false;
+            }
         }
 
         return input;
@@ -125,7 +127,9 @@ public class Player : AnimatedMovingObject
         else
             psuedoMoveSet = new PsuedoMoveSet(leftActiveMoveSet, rightActiveMoveSet);
         if (psuedoMoveSet.Do() && !GetGrounded() && GetWallDirection() == Vector3.zero && !GetCapped())
+        {
             aerialAction = false;
+        }
     }
 
     private class PsuedoMoveSet
@@ -382,6 +386,8 @@ public class Player : AnimatedMovingObject
         base.FixedUpdate();
 
         if (GetGrounded() || GetWallDirection() != Vector3.zero || GetCapped())
+        {
             aerialAction = true;
+        }
     }
 }

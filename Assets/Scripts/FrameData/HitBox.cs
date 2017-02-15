@@ -76,7 +76,7 @@ public class HitBox : ActiveFrameData
             hurts.Contains(other.GetComponent<HurtBox>()) ||
             exclude.Contains(other.GetComponent<HurtBox>().mo))
             return;
-
+        
         HurtBox hurt = other.GetComponent<HurtBox>();
 		
 		if (hurts.Count < maxHurts || maxHurts == -1)
