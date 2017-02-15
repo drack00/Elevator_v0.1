@@ -8,7 +8,6 @@ public class Player : AnimatedMovingObject
     public override void SetGrounded(bool _grounded)
     {
         base.SetGrounded(_grounded);
-
         foreach (MoveSet moveSet in moveSets)
         {
             moveSet.ToggleGrounded(_grounded);
@@ -18,6 +17,7 @@ public class Player : AnimatedMovingObject
     public override void SetWallDirection(Vector3 _wallDirection)
     {
         wallDirection = _wallDirection;
+        animator.SetBool("Walled", _wallDirection != Vector3.zero);
         (moveSets[0] as BareKnuckle).ToggleWalled(Quaternion.Inverse(Quaternion.LookRotation(GetFocus())) * _wallDirection);
     }
     public override Vector3 GetWallDirection()
@@ -34,15 +34,10 @@ public class Player : AnimatedMovingObject
     {
         return grab;
     }
-    private Vector2 speed = Vector2.zero;
-    public override void SetSpeed(Vector2 _speed)
+    public override void SetSpeed(Vector2 speed)
     {
-        speed = _speed;
-        (moveSets[1] as FleetFoot).ToggleMovement(_speed);
-    }
-    public override Vector2 GetSpeed()
-    {
-        return speed;
+        base.SetSpeed(speed);
+        (moveSets[1] as FleetFoot).ToggleMovement(speed);
     }
 
     public override Vector2 GetInput()
@@ -50,16 +45,23 @@ public class Player : AnimatedMovingObject
         if ((blockingMask & BlockingMask.Movement) != 0)
             return base.GetInput();
 
+        //movement inputs
         Vector2 input = new Vector2
         {
             x = CrossPlatformInputManager.GetAxis("Horizontal"),
             y = CrossPlatformInputManager.GetAxis("Vertical")
         };
         input.Normalize();
-
         SetSpeed(input);
-
         movementSettings.UpdateDesiredTargetSpeed(input);
+
+        //movement actions
+        if (CrossPlatformInputManager.GetButtonDown("Jump") && aerialAction)
+        {
+            animator.SetTrigger("Jump");
+            if (!GetGrounded() && GetWallDirection() == Vector3.zero && !GetCapped())
+                aerialAction = false;
+        }
 
         return input;
     }
@@ -79,25 +81,20 @@ public class Player : AnimatedMovingObject
         //align psuedo-moveset and toggle gizmos
         psuedoMoveSet.Align(root);
     }
+    private bool aerialAction = true;
     public override void NextAction()
     {
         if ((blockingMask & BlockingMask.Action) != 0)
         {
-            foreach(MoveSet moveSet in moveSets)
+            animator.ResetTrigger("Jump");
+
+            foreach (MoveSet moveSet in moveSets)
             {
                 moveSet.Reset();
             }
 
-            animator.ResetTrigger("Jump");
-            animator.SetBool("Jump", false);
-
             return;
         }
-
-        //primary animator inputs
-        if (CrossPlatformInputManager.GetButtonDown("Jump"))
-            animator.SetTrigger("JumpEdge");
-        animator.SetBool("Jump", CrossPlatformInputManager.GetButton("Jump"));
 
         //get relevent movesets
         MoveSet dualActiveMoveSet = activeMoveSet;
@@ -127,7 +124,8 @@ public class Player : AnimatedMovingObject
             psuedoMoveSet = new PsuedoMoveSet(dualActiveMoveSet);
         else
             psuedoMoveSet = new PsuedoMoveSet(leftActiveMoveSet, rightActiveMoveSet);
-        psuedoMoveSet.Do();
+        if (psuedoMoveSet.Do() && !GetGrounded() && GetWallDirection() == Vector3.zero && !GetCapped())
+            aerialAction = false;
     }
 
     private class PsuedoMoveSet
@@ -186,8 +184,10 @@ public class Player : AnimatedMovingObject
             }
         }
 
-        public void Do()
+        public bool Do()
         {
+            bool _do = false;
+
             //get raw inputs
             bool leftPositive = CrossPlatformInputManager.GetButtonDown("Fire1");
             bool rightPositive = CrossPlatformInputManager.GetButtonDown("Fire2");
@@ -229,32 +229,46 @@ public class Player : AnimatedMovingObject
             if (dualPositive)
             {
                 dualAnimator.SetTrigger("Positive");
+                _do = true;
             }
             else if(!dualHold)
             {
                 if (leftPositive &&
                     (leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") || leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1")) &&
                     (dualAnimator == null || (dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1"))))
+                {
                     leftAnimator.SetTrigger("Positive");
+                    _do = true;
+                }
                 if (rightPositive &&
                     (rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") || rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1")) &&
                     (dualAnimator == null || (dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1"))))
+                {
                     rightAnimator.SetTrigger("Positive");
+                    _do = true;
+                }
             }
             if (dualNegative)
             {
                 dualAnimator.SetTrigger("Negative");
+                _do = true;
             }
             else if (!dualHold)
             {
                 if (leftNegative &&
                     leftAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge") &&
-                    (dualAnimator == null || (dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")|| dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1"))))
+                    (dualAnimator == null || (dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1"))))
+                {
                     leftAnimator.SetTrigger("Negative");
+                    _do = true;
+                }
                 if (rightNegative &&
                     rightAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Charge") &&
-                    (dualAnimator == null || (dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest")|| dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1"))))
+                    (dualAnimator == null || (dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest") || dualAnimator.GetCurrentAnimatorStateInfo(0).IsTag("Rest1"))))
+                {
                     rightAnimator.SetTrigger("Negative");
+                    _do = true;
+                }
             }
             if (dualHold)
             {
@@ -290,6 +304,8 @@ public class Player : AnimatedMovingObject
                 otherAnimator.ResetTrigger("Negative");
                 otherAnimator.SetBool("Hold", false);
             }
+
+            return _do;
         }
     }
     private PsuedoMoveSet psuedoMoveSet;
@@ -360,5 +376,12 @@ public class Player : AnimatedMovingObject
         cam.transform.localRotation = //Quaternion.Angle(cam.transform.localRotation, targetRot) < Quaternion.Angle(cam.transform.localRotation, inverseTargetRot) ?
             Quaternion.Lerp(cam.transform.localRotation, targetRot, camSmoothing * Time.deltaTime); //:
             //Quaternion.Lerp(cam.transform.localRotation, inverseTargetRot, camSmoothing * Time.deltaTime);
+    }
+    public override void FixedUpdate()
+    {
+        base.FixedUpdate();
+
+        if (GetGrounded() || GetWallDirection() != Vector3.zero || GetCapped())
+            aerialAction = true;
     }
 }

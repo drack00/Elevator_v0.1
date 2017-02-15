@@ -16,6 +16,12 @@ public class MiscBox : ActiveFrameData
 
         enableBehaviour.Do(false, this);
     }
+    public void FixedUpdate()
+    {
+        mo.blockingMask |= blockingMask;
+
+        updateBehaviour.Do(false, this);
+    }
     public void OnDisable()
     {
         mo.blockingMask = mo.blockingMask & (mo.blockingMask ^ blockingMask);
